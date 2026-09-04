@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Facebook 5 Feeds - สาขาวิชาคณิตศาสตร์ ม.แม่โจ้</title>
+    <title>Facebook 6 Feeds - สาขาวิชาคณิตศาสตร์ ม.แม่โจ้</title>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
@@ -23,19 +23,18 @@
             overflow-x: hidden;
         }
 
-        /* เลย์เอาต์จัดวางกึ่งกลาง - การ์ดทุกใบขนาดเท่ากันปกติ */
-        .feed-container-5 {
+        /* เลย์เอาต์ 6 ข่าว (3 คอลัมน์ x 2 แถว) */
+        .feed-container-6 {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center; /* จัด 2 ข่าวล่างให้อยู่ตรงกลางเป๊ะๆ */
+            justify-content: space-between;
             gap: 12px;
             width: 100%;
             margin: 0;
             padding: 0;
         }
 
-        /* การ์ดข่าวทุกใบมีขนาดปกติเท่ากันทั้งหมด (33.3% - 8px) */
-        .news-card-5 {
+        .news-card-6 {
             width: calc(33.333% - 8px);
             background: #ffffff;
             border: 1px solid #e2e8f0;
@@ -50,20 +49,24 @@
             transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .news-card-5:hover {
+        .news-card-6:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
         }
 
-        /* รูปภาพขยายเต็มกรอบสวยงาม */
+        /* การ์ด YouTube พิเศษ */
+        .news-card-6.youtube-card {
+            border: 1px solid #fca5a5;
+            background: #fff5f5;
+        }
+
+        /* รูปภาพโหมดปกติ ย่อครอบเต็มพื้นที่ (Cover Mode) */
         .card-img-wrapper {
             width: 100%;
             height: 220px;
-            background: #0f172a;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: #f8fafc;
             overflow: hidden;
+            position: relative;
         }
 
         .card-img {
@@ -71,6 +74,24 @@
             height: 100%;
             object-fit: cover;
             object-position: top center;
+        }
+
+        /* ไอคอนเล่นวิดีโอ YouTube */
+        .play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 48px;
+            height: 48px;
+            background: rgba(220, 38, 38, 0.9);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         .card-content {
@@ -99,6 +120,10 @@
             justify-content: center;
             font-size: 11px;
             font-weight: bold;
+        }
+
+        .author-icon.yt-icon {
+            background: #dc2626;
         }
 
         .author-name {
@@ -131,6 +156,10 @@
             display: inline-block;
         }
 
+        .read-more.yt-more {
+            color: #dc2626;
+        }
+
         .status-msg {
             text-align: center;
             padding: 40px;
@@ -139,7 +168,7 @@
         }
 
         @media (max-width: 768px) {
-            .news-card-5 {
+            .news-card-6 {
                 width: 100%;
             }
         }
@@ -150,7 +179,7 @@
 
     <div id="status" class="status-msg">⏳ กำลังดึงข่าวสด 5 โพสต์ล่าสุดจาก Facebook เพจ Mathแม่โจ้...</div>
 
-    <div class="feed-container-5" id="feed-container"></div>
+    <div class="feed-container-6" id="feed-container"></div>
 
     <script>
         const fbPageUrl = 'https://www.facebook.com/MathMaeJo';
@@ -160,7 +189,7 @@
         fetch(apiUrl)
             .then(res => res.json())
             .then(data => {
-                const posts = (data.items || []).slice(0, 5);
+                let posts = (data.items || []).slice(0, 5); // ดึง 5 โพสต์สดจาก Facebook
                 const statusEl = document.getElementById('status');
 
                 if (posts.length === 0) {
@@ -168,18 +197,32 @@
                     return;
                 }
 
+                // 📌 เพิ่มการ์ดใบที่ 6 ล็อกถาวรเป็นคลิปแนะนำคณะวิทยาศาสตร์ ม.แม่โจ้ (YouTube)
+                posts.push({
+                    title: "🎬 แนะนำคณะวิทยาศาสตร์ มหาวิทยาลัยแม่โจ้",
+                    description: "วิดีโอแนะนำหลักสูตร และการเรียนการสอน คณะวิทยาศาสตร์ มหาวิทยาลัยแม่โจ้ (คลิกเพื่อรับชมบน YouTube)",
+                    pubDate: "วิดีโอแนะนำ",
+                    thumbnail: "https://img.youtube.com/vi/EghnSl8vNtE/hqdefault.jpg",
+                    link: "https://www.youtube.com/watch?v=EghnSl8vNtE",
+                    isYoutube: true
+                });
+
                 statusEl.style.display = 'none';
                 const container = document.getElementById('feed-container');
 
                 posts.forEach(post => {
-                    const dateStr = post.pubDate ? new Date(post.pubDate).toLocaleDateString('th-TH', { month: 'short', day: 'numeric' }) : 'ล่าสุด';
+                    const dateStr = post.isYoutube ? 'วิดีโอแนะนำ' : (post.pubDate ? new Date(post.pubDate).toLocaleDateString('th-TH', { month: 'short', day: 'numeric' }) : 'ล่าสุด');
 
                     let cleanText = '';
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = post.description || post.content || post.title || '';
-                    cleanText = tempDiv.textContent || tempDiv.innerText || '';
-                    cleanText = cleanText.trim().replace(/\s+/g, ' ');
-                    if (!cleanText || cleanText.length < 5) cleanText = post.title || 'โพสต์ข่าวสารกิจกรรม สาขาวิชาคณิตศาสตร์ มหาวิทยาลัยแม่โจ้';
+                    if (post.isYoutube) {
+                        cleanText = post.description;
+                    } else {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = post.description || post.content || post.title || '';
+                        cleanText = tempDiv.textContent || tempDiv.innerText || '';
+                        cleanText = cleanText.trim().replace(/\s+/g, ' ');
+                        if (!cleanText || cleanText.length < 5) cleanText = post.title || 'โพสต์ข่าวสารกิจกรรม สาขาวิชาคณิตศาสตร์ มหาวิทยาลัยแม่โจ้';
+                    }
 
                     let imgUrl = post.thumbnail || (post.enclosure && post.enclosure.link);
                     if (!imgUrl && post.description) {
@@ -189,21 +232,22 @@
                     if (!imgUrl) imgUrl = 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=500';
 
                     container.innerHTML += `
-            <a href="${post.link || fbPageUrl}" target="_blank" class="news-card-5">
+            <a href="${post.link || fbPageUrl}" target="_blank" class="news-card-6 ${post.isYoutube ? 'youtube-card' : ''}">
               <div class="card-img-wrapper">
-                <img class="card-img" src="${imgUrl}" alt="Facebook Post Image">
+                <img class="card-img" src="${imgUrl}" alt="Card Image">
+                ${post.isYoutube ? '<div class="play-btn">▶</div>' : ''}
               </div>
               <div class="card-content">
                 <div>
                   <div class="author-info">
-                    <div class="author-icon">∞</div>
-                    <span class="author-name">Math แม่โจ้</span>
+                    <div class="author-icon ${post.isYoutube ? 'yt-icon' : ''}">${post.isYoutube ? '▶' : '∞'}</div>
+                    <span class="author-name">${post.isYoutube ? 'คณะวิทยาศาสตร์ ม.แม่โจ้' : 'Math แม่โจ้'}</span>
                     <span class="author-date">${dateStr}</span>
                   </div>
                   <p class="card-text">${cleanText}</p>
                 </div>
                 <div>
-                  <span class="read-more">Read More ➔</span>
+                  <span class="read-more ${post.isYoutube ? 'yt-more' : ''}">${post.isYoutube ? 'รับชมบน YouTube ➔' : 'Read More ➔'}</span>
                 </div>
               </div>
             </a>
