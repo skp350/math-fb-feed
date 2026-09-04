@@ -34,7 +34,6 @@
             padding: 0;
         }
 
-        /* 📌 ยืดเพิ่มความสูงของการ์ดข่าวเป็น 440px */
         .news-card-6 {
             width: calc(33.333% - 8px);
             background: #ffffff;
@@ -45,7 +44,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 440px;
+            height: 430px;
             text-decoration: none;
             color: inherit;
             transition: transform 0.2s, box-shadow 0.2s;
@@ -61,10 +60,9 @@
             background: #fff5f5;
         }
 
-        /* 📌 ขยายความสูงของรูปภาพเพิ่มขึ้นเป็น 280px */
         .card-img-wrapper {
             width: 100%;
-            height: 280px;
+            height: 270px;
             background: #f8fafc;
             overflow: hidden;
             position: relative;
@@ -105,46 +103,22 @@
         .author-info {
             display: flex;
             align-items: center;
-            gap: 6px;
+            justify-content: flex-end;
             margin-bottom: 6px;
         }
 
-        .author-icon {
-            width: 22px;
-            height: 22px;
-            background: #d81b60;
-            color: #fff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
-        .author-icon.yt-icon {
-            background: #dc2626;
-        }
-
-        .author-name {
-            font-size: 11px;
-            font-weight: 700;
-            color: #1e293b;
-        }
-
         .author-date {
-            font-size: 10px;
+            font-size: 11px;
             color: #64748b;
-            margin-left: auto;
+            font-weight: 500;
         }
 
-        /* 📌 ขยายข้อความให้อ่านได้ถึง 5 บรรทัด */
         .card-text {
             font-size: 12px;
             color: #334155;
             line-height: 1.5;
             display: -webkit-box;
-            -webkit-line-clamp: 5;
+            -webkit-line-clamp: 4;
             -webkit-box-orient: vertical;
             overflow: hidden;
             margin-bottom: 6px;
@@ -241,9 +215,7 @@
               <div class="card-content">
                 <div>
                   <div class="author-info">
-                    <div class="author-icon ${post.isYoutube ? 'yt-icon' : ''}">${post.isYoutube ? '▶' : '∞'}</div>
-                    <span class="author-name">${post.isYoutube ? 'คณะวิทยาศาสตร์ ม.แม่โจ้' : 'Math แม่โจ้'}</span>
-                    <span class="author-date">${dateStr}</span>
+                    <span class="author-date">📅 ${dateStr}</span>
                   </div>
                   <p class="card-text">${cleanText}</p>
                 </div>
