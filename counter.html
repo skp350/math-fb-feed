@@ -2,56 +2,58 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visitors Counter - MJU Math</title>
+  
+  <!-- Google Fonts: Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
+
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Sarabun', Tahoma, sans-serif; }
-    body { background: transparent; text-align: center; overflow: hidden; padding: 2px; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      background-color: transparent;
+      font-family: 'Sarabun', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+      color: #ffffff;
+    }
     .counter-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      color: #ffffff;
-      font-size: 13px;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.9em;
     }
-    .count-number {
-      background: #d81b60; /* สีชมพูแม่โจ้ */
+    .label {
       color: #ffffff;
-      padding: 2px 10px;
-      border-radius: 12px;
-      font-weight: bold;
-      font-size: 12px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      font-weight: 500;
+    }
+    .badge-img {
+      height: 20px;
+      vertical-align: middle;
+      border-radius: 3px;
     }
   </style>
 </head>
 <body>
+
   <div class="counter-badge">
-    <span>ผู้เข้าชมเว็บไซต์:</span>
-    <span class="count-number" id="visit-count">1 คน</span>
+    <span class="label">👥 ผู้เข้าชมเว็บไซต์:</span>
+    <!-- Global Central Server Counter (สะสมสถิติจริงจากผู้ใช้ทุกคน) -->
+    <img class="badge-img" src="https://hits.sh/math.mju.ac.th/visitor_counter.svg?color=d81b60&label=Visitors&labelColor=2d3748" alt="Visitors Counter" />
   </div>
 
-  <script>
-    // 1. อ่านค่าสถิติดั้งเดิมจากเบราว์เซอร์ (ถ้าไม่มีให้เริ่มจาก 0)
-    let currentCount = parseInt(localStorage.getItem('mju_math_visitor_count') || '0');
-
-    // 2. บวกเพิ่ม 1 คน (+1) ทันทีทุกครั้งที่มีคนเปิดเข้าหน้าเว็บ
-    currentCount += 1;
-    localStorage.setItem('mju_math_visitor_count', currentCount);
-    document.getElementById('visit-count').textContent = currentCount.toLocaleString('th-TH') + ' คน';
-
-    // 3. ซิงค์กับระบบนับสถิติบนเซิร์ฟเวอร์
-    fetch('https://api.counterapi.dev/v1/math_mju_official_counter_v3/visits/up')
-      .then(res => res.json())
-      .then(data => {
-        if (data && data.count) {
-          // ใช้ค่าตัวเลขที่สูงที่สุดระหว่างเซิร์ฟเวอร์กับเบราว์เซอร์
-          const globalCount = Math.max(data.count, currentCount);
-          localStorage.setItem('mju_math_visitor_count', globalCount);
-          document.getElementById('visit-count').textContent = globalCount.toLocaleString('th-TH') + ' คน';
-        }
-      })
-      .catch(err => {
-        // แม้ระบบภายนอกขัดข้อง ตัวเลขก็ยังนับบวกเพิ่มอย่างถูกต้องเสมอ!
-      });
-  </script>
 </body>
 </html>
