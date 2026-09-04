@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook 5 Feeds - สาขาวิชาคณิตศาสตร์ ม.แม่โจ้</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Sarabun', sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            padding: 10px;
+            margin: 0;
+        }
+
+        /* เลย์เอาต์ 5 ข่าว (แถวบน 3 / แถวล่าง 2 จัดอยู่ตรงกลาง) */
+        .feed-container-5 {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .news-card-5 {
+            width: calc(33.333% - 12px);
+            min-width: 280px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .news-card-5:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        /* แสดงรูปภาพเต็มโปสเตอร์ 100% ไม่โดนตัดขอบ */
+        .card-img-wrapper {
+            width: 100%;
+            height: 260px;
+            background: #0f172a;
+            /* พื้นหลังสีเข้มรองรับรูป */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card-img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            /* รูปแสดงผลเต็มรูป 100% ไม่โดนตัด */
+        }
+
+        .card-content {
+            padding: 14px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .author-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .author-icon {
+            width: 24px;
+            height: 24px;
+            background: #d81b60;
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .author-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .author-date {
+            font-size: 11px;
+            color: #64748b;
+            margin-left: auto;
+        }
+
+        .card-text {
+            font-size: 12px;
+            color: #334155;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .read-more {
+            font-size: 11px;
+            color: #2563eb;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-msg {
+            text-align: center;
+            padding: 60px;
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .news-card-5 {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="status" class="status-msg">⏳ กำลังดึงข่าวสด 5 โพสต์ล่าสุดจาก Facebook เพจ Mathแม่โจ้...</div>
+
+    <div class="feed-container-5" id="feed-container"></div>
+
+    <script>
+        const fbPageUrl = 'https://www.facebook.com/MathMaeJo';
+        const myRealRssUrl = 'https://fetchrss.com/feed/1x2Ksn3K62qo1x2KsG7fR4v4.rss';
+        const apiUrl = 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(myRealRssUrl);
+
+        fetch(apiUrl)
+            .then(res => res.json())
+            .then(data => {
+                const posts = (data.items || []).slice(0, 5); // ดึงเฉพาะ 5 โพสต์ล่าสุด
+                const statusEl = document.getElementById('status');
+
+                if (posts.length === 0) {
+                    statusEl.innerHTML = '❌ ไม่พบข้อมูลโพสต์สด';
+                    return;
+                }
+
+                statusEl.style.display = 'none';
+                const container = document.getElementById('feed-container');
+
+                posts.forEach(post => {
+                    const dateStr = post.pubDate ? new Date(post.pubDate).toLocaleDateString('th-TH', { month: 'short', day: 'numeric' }) : 'ล่าสุด';
+
+                    // สกัดข้อความข่าวสด
+                    let cleanText = '';
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = post.description || post.content || post.title || '';
+                    cleanText = tempDiv.textContent || tempDiv.innerText || '';
+                    cleanText = cleanText.trim().replace(/\s+/g, ' ');
+                    if (!cleanText || cleanText.length < 5) cleanText = post.title || 'โพสต์ข่าวสารกิจกรรม สาขาวิชาคณิตศาสตร์ มหาวิทยาลัยแม่โจ้';
+
+                    // สกัดรูปภาพสด
+                    let imgUrl = post.thumbnail || (post.enclosure && post.enclosure.link);
+                    if (!imgUrl && post.description) {
+                        const imgMatch = post.description.match(/src=["'](.*?)["']/);
+                        if (imgMatch) imgUrl = imgMatch[1];
+                    }
+                    if (!imgUrl) imgUrl = 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=500';
+
+                    container.innerHTML += `
+            <a href="${post.link || fbPageUrl}" target="_blank" class="news-card-5">
+              <div class="card-img-wrapper">
+                <img class="card-img" src="${imgUrl}" alt="Facebook Post Image">
+              </div>
+              <div class="card-content">
+                <div>
+                  <div class="author-info">
+                    <div class="author-icon">∞</div>
+                    <span class="author-name">Math แม่โจ้</span>
+                    <span class="author-date">${dateStr}</span>
+                  </div>
+                  <p class="card-text">${cleanText}</p>
+                </div>
+                <div>
+                  <span class="read-more">Read More ➔</span>
+                </div>
+              </div>
+            </a>
+          `;
+                });
+            })
+            .catch(err => {
+                document.getElementById('status').innerHTML = '❌ ไม่สามารถดึงข้อมูลได้';
+            });
+    </script>
+</body>
+
+</html>
