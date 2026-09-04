@@ -39,6 +39,7 @@
     .label {
       color: #ffffff;
       font-weight: 500;
+      white-space: nowrap;
     }
     .badge-img {
       height: 20px;
@@ -50,9 +51,11 @@
 <body>
 
   <div class="counter-badge">
-    <span class="label">👥 ผู้เข้าชมเว็บไซต์:</span>
-    <!-- Global Central Server Counter (สะสมสถิติจริงจากผู้ใช้ทุกคน) -->
-    <img class="badge-img" src="https://hits.sh/math.mju.ac.th/visitor_counter.svg?color=d81b60&label=Visitors&labelColor=2d3748" alt="Visitors Counter" />
+    <span class="label">ผู้เข้าชมเว็บไซต์:</span>
+    <!-- Real-Time Visitor Counter (ขยับนับ +1 จริงทุกครั้งที่เปิด/รีเฟรช) -->
+    <img id="counter-img" class="badge-img" 
+         src="https://api.visitorbadge.io/api/visitors?path=math_mju_ac_th_counter&label=Visitors&labelColor=%232d3748&countColor=%23d81b60&style=flat" 
+         alt="Visitors Counter" />
   </div>
 
 </body>
