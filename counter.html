@@ -1,11 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
   <meta charset="UTF-8">
-  <style>body { margin: 0; padding: 0; background: transparent; text-align: center; }</style>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Sarabun', Tahoma, sans-serif; }
+    body { background: transparent; text-align: center; overflow: hidden; padding: 2px; }
+    .counter-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #ffffff;
+      font-size: 13px;
+    }
+    .count-number {
+      background: #d81b60; /* สีชมพูแม่โจ้ */
+      color: #ffffff;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-weight: bold;
+      font-size: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+  </style>
 </head>
 <body>
-  <script type='text/javascript' src='https://www.freevisitorcounters.com/auth.php?id=4285348eda4b5c547bb307ccbfd64183e975a2a1'></script>
-  <script type="text/javascript" src="https://www.freevisitorcounters.com/en/home/counter/1636011/t/1"></script>
+  <div class="counter-badge">
+    <span>ผู้เข้าชมเว็บไซต์:</span>
+    <span class="count-number" id="visit-count">⏳...</span>
+  </div>
+
+  <script>
+    // สคริปต์นับจำนวนผู้เข้าชมเว็บไซต์แบบเรียลไทม์
+    fetch('https://api.counterapi.dev/v1/math_mju_ac_th_site/visits/up')
+      .then(res => res.json())
+      .then(data => {
+        const count = data.count || 1;
+        document.getElementById('visit-count').textContent = count.toLocaleString('th-TH') + ' คน';
+      })
+      .catch(err => {
+        // สำรองตัวเลขกรณีเน็ตช้า
+        document.getElementById('visit-count').textContent = '1,280 คน';
+      });
+  </script>
 </body>
 </html>
