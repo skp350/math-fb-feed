@@ -26,20 +26,19 @@
 <body>
   <div class="counter-badge">
     <span>ผู้เข้าชมเว็บไซต์:</span>
-    <span class="count-number" id="visit-count">⏳...</span>
+    <span class="count-number" id="visit-count">0 คน</span>
   </div>
 
   <script>
-    // สคริปต์นับจำนวนผู้เข้าชมเว็บไซต์แบบเรียลไทม์
-    fetch('https://api.counterapi.dev/v1/math_mju_ac_th_site/visits/up')
+    // สคริปต์เริ่มนับจาก 0 คน แบบเรียลไทม์
+    fetch('https://api.counterapi.dev/v1/math_mju_ac_th_v0/visits/up')
       .then(res => res.json())
       .then(data => {
         const count = data.count || 1;
         document.getElementById('visit-count').textContent = count.toLocaleString('th-TH') + ' คน';
       })
       .catch(err => {
-        // สำรองตัวเลขกรณีเน็ตช้า
-        document.getElementById('visit-count').textContent = '1,280 คน';
+        document.getElementById('visit-count').textContent = '1 คน';
       });
   </script>
 </body>
