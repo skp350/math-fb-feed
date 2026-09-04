@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>อาจารย์ผู้รับผิดชอบหลักสูตรและอาจารย์ประจำหลักสูตร - สาขาวิชาคณิตศาสตร์ มหาวิทยาลัยแม่โจ้</title>
+  
+  <!-- Google Fonts: Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background-color: #ffffff;
+      color: #333333;
+      line-height: 1.6;
+      padding: 20px 10px;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    
+    .section-header {
+      text-align: center;
+      color: #000080;
+      font-size: 1.8em;
+      font-weight: 700;
+      margin: 30px 0 20px 0;
+      position: relative;
+      padding-bottom: 10px;
+    }
+    .section-header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 3px;
+      background-color: #d9006c;
+      border-radius: 2px;
+    }
+
+    /* Grid Layout - 3 Columns on Desktop */
+    .prof-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      margin-bottom: 40px;
+    }
+
+    /* Card Styling */
+    .prof-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 24px 18px 18px 18px;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+    .prof-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 14px 28px rgba(217, 0, 108, 0.18);
+      border-color: #d9006c;
+    }
+    
+    .prof-img-wrap {
+      width: 145px;
+      height: 145px;
+      margin: 0 auto 15px auto;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid #ffffff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      background-color: #f8f9fa;
+    }
+    .prof-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .prof-name {
+      font-size: 1.15em;
+      color: #d9006c;
+      font-weight: 700;
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+    .prof-pos {
+      font-size: 0.9em;
+      color: #4b5563;
+      margin-bottom: 12px;
+      min-height: 38px;
+    }
+    .prof-hint-badge {
+      display: inline-block;
+      font-size: 0.78em;
+      color: #0056b3;
+      background: #e6f2ff;
+      padding: 3px 12px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .prof-card:hover .prof-hint-badge {
+      background: #fdecee;
+      color: #d9006c;
+    }
+    
+    .prof-actions {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding-top: 10px;
+      border-top: 1px solid #f0f0f0;
+    }
+    .prof-icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      text-decoration: none;
+    }
+    .prof-icon-btn:hover {
+      background: #fdecee;
+      border-color: #d9006c;
+      transform: scale(1.1);
+    }
+    .prof-icon-btn img {
+      width: 22px;
+      height: 22px;
+    }
+
+    /* Modal Popup Styling */
+    .prof-modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.65);
+      z-index: 99999;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+      backdrop-filter: blur(4px);
+    }
+    .prof-modal-card {
+      background: #ffffff;
+      border-radius: 16px;
+      max-width: 850px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      position: relative;
+      animation: modalFadeIn 0.3s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .prof-modal-close {
+      position: absolute;
+      top: 15px;
+      right: 20px;
+      font-size: 32px;
+      font-weight: bold;
+      color: #888;
+      cursor: pointer;
+      z-index: 10;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.8);
+      transition: all 0.2s;
+    }
+    .prof-modal-close:hover { 
+      color: #d9006c; 
+      background: #fdecee;
+    }
+    .prof-modal-header {
+      background: linear-gradient(135deg, #fdecee 0%, #fff 100%);
+      padding: 28px 24px;
+      border-bottom: 2px solid #fdd;
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .prof-modal-header-img {
+      width: 135px;
+      height: 165px;
+      object-fit: cover;
+      border-radius: 10px;
+      border: 3px solid #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+    .prof-modal-header-info {
+      flex: 1;
+      min-width: 250px;
+    }
+    .prof-modal-body {
+      padding: 25px 24px;
+    }
+    .prof-modal-sec-title {
+      font-size: 1.12em;
+      color: #000080;
+      margin: 20px 0 12px 0;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 6px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .prof-modal-sec-title:first-child {
+      margin-top: 0;
+    }
+    .prof-edu-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9em;
+      margin-top: 10px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .prof-edu-table th {
+      background-color: #fee8ec;
+      border: 1px solid #e5c7ce;
+      padding: 9px 12px;
+      text-align: left;
+      color: #000080;
+      font-weight: 600;
+    }
+    .prof-edu-table td {
+      border: 1px solid #eee;
+      padding: 9px 12px;
+    }
+    
+    .custom-ul {
+      margin: 8px 0 0 20px;
+      padding: 0;
+      font-size: 0.92em;
+      color: #374151;
+      line-height: 1.7;
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .prof-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 600px) {
+      .prof-grid {
+        grid-template-columns: 1fr;
+      }
+      .prof-modal-header {
+        flex-direction: column;
+        text-align: center;
+      }
+      .prof-modal-header-img {
+        margin: 0 auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- 1. อาจารย์ผู้รับผิดชอบหลักสูตร -->
+  <h2 class="section-header">อาจารย์ผู้รับผิดชอบหลักสูตร</h2>
+  <div class="prof-grid">
+    
+    <!-- คนที่ 1: ผศ.เยาวลักษณ์ คงธรรม -->
+    <div class="prof-card" onclick="openProfModal('p1')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681222162326_197730.png" alt="ผู้ช่วยศาสตราจารย์เยาวลักษณ์ คงธรรม" /></div>
+        <div class="prof-name">ผู้ช่วยศาสตราจารย์เยาวลักษณ์ คงธรรม</div>
+        <div class="prof-pos">ประธานอาจารย์ผู้รับผิดชอบหลักสูตร</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:yaowa.k@mju.ac.th" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=376&f_cmd=2&officercode=376&officername=%BC%D9%E9%AA%E8%C7%C2%C8%D2%CA%B5%C3%D2%A8%D2%C3%C2%EC+%E0%C2%D2%C7%C5%D1%A1%C9%B3%EC+%A4%A7%B8%C3%C3%C1&remark=&officeremail=yaowa%2Ek%40mju%2Eac%2Eth" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+        <a href="wtms_contactDirect.aspx?&lang=th-TH" target="_blank" class="prof-icon-btn" title="ข้อเสนอแนะ / ข้อร้องเรียน"><img src="goverment/25610410092154_math2/Doc_25681031001907_875709.png" alt="Feedback" /></a>
+      </div>
+    </div>
+
+    <!-- คนที่ 2: ผศ.ดร.จีรวรรณ พัชรประกิติ -->
+    <div class="prof-card" onclick="openProfModal('p2')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681222162216_66932.png" alt="ผู้ช่วยศาสตราจารย์ ดร.จีรวรรณ พัชรประกิติ" /></div>
+        <div class="prof-name">ผู้ช่วยศาสตราจารย์ ดร.จีรวรรณ พัชรประกิติ</div>
+        <div class="prof-pos">รองประธานอาจารย์ผู้รับผิดชอบหลักสูตร</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:jeerawan_s@mju.ac.th" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=29730&f_cmd=2&officercode=29730&officername=%BC%D9%E9%AA%E8%C7%C2%C8%D2%CA%B5%C3%D2%A8%D2%C3%C2%EC+%B4%C3%2E+%A8%D5%C3%C7%C3%C3%B3+%BE%D1%AA%C3%BB%C3%D0%A1%D4%B5%D4&remark=&officeremail=jeerawan%5Fs%40mju%2Eac%2Eth" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+        <a href="wtms_contactDirect.aspx?&lang=th-TH" target="_blank" class="prof-icon-btn" title="ข้อเสนอแนะ / ข้อร้องเรียน"><img src="goverment/25610410092154_math2/Doc_25681031001907_875709.png" alt="Feedback" /></a>
+      </div>
+    </div>
+
+    <!-- คนที่ 3: รศ.ดร.วันจักร สาทสนิท -->
+    <div class="prof-card" onclick="openProfModal('p10')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681222162318_331734.png" alt="รองศาสตราจารย์ ดร.วันจักร สาทสนิท" /></div>
+        <div class="prof-name">รองศาสตราจารย์ ดร.วันจักร สาทสนิท</div>
+        <div class="prof-pos">กรรมการอาจารย์ผู้รับผิดชอบหลักสูตร</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:wanchack@gmail.com" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=25410&f_cmd=2&officercode=25410&officername=%C3%CD%A7%C8%D2%CA%B5%C3%D2%A8%D2%C3%C2%EC+%B4%C3%2E+%C7%D1%B9%A8%D1%A1%C3+%CA%D2%B7%CA%B9%D4%B7&remark=&officeremail=wanchak%40mju%2Eac%2Eth" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+        <a href="wtms_contactDirect.aspx?&lang=th-TH" target="_blank" class="prof-icon-btn" title="ข้อเสนอแนะ / ข้อร้องเรียน"><img src="goverment/25610410092154_math2/Doc_25681031001907_875709.png" alt="Feedback" /></a>
+      </div>
+    </div>
+
+    <!-- คนที่ 4: ผศ.กมลเทพ มีคำ -->
+    <div class="prof-card" onclick="openProfModal('p4')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681223121252_364556.png" alt="ผู้ช่วยศาสตราจารย์กมลเทพ มีคำ" /></div>
+        <div class="prof-name">ผู้ช่วยศาสตราจารย์กมลเทพ มีคำ</div>
+        <div class="prof-pos">กรรมการอาจารย์ผู้รับผิดชอบหลักสูตร</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:kamonthep@mju.ac.th" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=17875&f_cmd=2&officercode=968&officername=%BC%D9%E9%AA%E8%C7%C2%C8%D2%CA%B5%C3%D2%A8%D2%C3%C2%EC+%A1%C1%C5%E0%B7%BE+%C1%D5%A4%D3&remark=&officeremail=kamonthep%40mju%2Eac%2Eth" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+        <a href="wtms_contactDirect.aspx?&lang=th-TH" target="_blank" class="prof-icon-btn" title="ข้อเสนอแนะ / ข้อร้องเรียน"><img src="goverment/25610410092154_math2/Doc_25681031001907_875709.png" alt="Feedback" /></a>
+      </div>
+    </div>
+
+    <!-- คนที่ 5: อ.ดร.พิกุล ศรีดารัตน์ -->
+    <div class="prof-card" onclick="openProfModal('p5')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681222162252_40212.png" alt="อาจารย์ ดร.พิกุล ศรีดารัตน์" /></div>
+        <div class="prof-name">อาจารย์ ดร.พิกุล ศรีดารัตน์</div>
+        <div class="prof-pos">เลขานุการอาจารย์ผู้รับผิดชอบหลักสูตร</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:phikul@mju.ac.th" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=20550&f_cmd=2&officercode=20550&officername=%CD%D2%A8%D2%C3%C2%EC+%B4%C3%2E+%BE%D4%A1%D8%C5+%C8%C3%D5%B4%D2%C3%D1%B5%B9%EC&remark=&officeremail=phikul%40mju%2Eac%2Eth" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+        <a href="wtms_contactDirect.aspx?&lang=th-TH" target="_blank" class="prof-icon-btn" title="ข้อเสนอแนะ / ข้อร้องเรียน"><img src="goverment/25610410092154_math2/Doc_25681031001907_875709.png" alt="Feedback" /></a>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 2. อาจารย์ประจำหลักสูตร -->
+  <h2 class="section-header">อาจารย์ประจำหลักสูตร</h2>
+  <div class="prof-grid">
+    
+    <!-- คนที่ 6: รศ.ดร.ดารา ภูสง่า -->
+    <div class="prof-card" onclick="openProfModal('p11')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681222162313_79789.png" alt="รองศาสตราจารย์ ดร.ดารา ภูสง่า" /></div>
+        <div class="prof-name">รองศาสตราจารย์ ดร.ดารา ภูสง่า</div>
+        <div class="prof-pos">อาจารย์ประจำสาขาคณิตศาสตร์</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:darapu@mju.ac.th" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=616&f_cmd=2&officercode=0090&officername=%C3%CD%A7%C8%D2%CA%B5%C3%D2%A8%D2%C3%C2%EC+%B4%C3%2E+%B4%D2%C3%D2+%C0%D9%CA%A7%E8%D2&remark=&officeremail=darapu%40mju%2Eac%2Eth" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+      </div>
+    </div>
+
+    <!-- คนที่ 7: รศ.พัฒนพงศ์ เทียนชัย -->
+    <div class="prof-card" onclick="openProfModal('p6')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681222162258_288932.png" alt="รองศาสตราจารย์พัฒนพงศ์ เทียนชัย" /></div>
+        <div class="prof-name">รองศาสตราจารย์พัฒนพงศ์ เทียนชัย</div>
+        <div class="prof-pos">อาจารย์ประจำสาขาคณิตศาสตร์</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:pattana@mju.ac.th" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=512&f_cmd=2&officercode=512&officername=%C3%CD%A7%C8%D2%CA%B5%C3%D2%A8%D2%C3%C2%EC+%BE%D1%B2%B9%BE%A7%C8%EC+%E0%B7%D5%C2%B9%AA%D1%C2&remark=&officeremail=pattana%40mju%2Eac%2Eth" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+      </div>
+    </div>
+
+    <!-- คนที่ 8: รศ.ดร.เกรียงไกร ราชกิจ -->
+    <div class="prof-card" onclick="openProfModal('p8_k')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681222162225_393108.png" alt="รองศาสตราจารย์ ดร.เกรียงไกร ราชกิจ" /></div>
+        <div class="prof-name">รองศาสตราจารย์ ดร.เกรียงไกร ราชกิจ</div>
+        <div class="prof-pos">อาจารย์ประจำสาขาคณิตศาสตร์</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:kreangkri@mju.ac.th" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=23910&f_cmd=2&officercode=23910&officername=%C3%CD%A7%C8%D2%CA%B5%C3%D2%A8%D2%C3%C2%EC+%B4%C3%2E+%E0%A1%C3%D5%C2%A7%E4%A1%C3+%C3%D2%AA%A1%D4%A8&remark=&officeremail=kreangkri%40mju%2Eac%2Eth" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+      </div>
+    </div>
+
+    <!-- คนที่ 9: ผศ.ดร.สิตา ชากฤษณ์ -->
+    <div class="prof-card" onclick="openProfModal('p8')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681222162308_559546.png" alt="ผู้ช่วยศาสตราจารย์ ดร.สิตา ชากฤษณ์" /></div>
+        <div class="prof-name">ผู้ช่วยศาสตราจารย์ ดร.สิตา ชากฤษณ์</div>
+        <div class="prof-pos">อาจารย์ประจำสาขาคณิตศาสตร์</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:sita@mju.ac.th" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=20371&f_cmd=2&officercode=20371&officername=%BC%D9%E9%AA%E8%C7%C2%C8%D2%CA%B5%C3%D2%A8%D2%C3%C2%EC+%B4%C3%2E+%CA%D4%B5%D2+%AA%D2%A1%C4%C9%B3%EC&remark=&officeremail=sita%40mju%2Eac%2Eth" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+      </div>
+    </div>
+
+    <!-- คนที่ 10: ผศ.ดร.บุรัสกร นันทดิลก -->
+    <div class="prof-card" onclick="openProfModal('p10_b')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681222162246_324706.png" alt="ผู้ช่วยศาสตราจารย์ ดร.บุรัสกร นันทดิลก" /></div>
+        <div class="prof-name">ผู้ช่วยศาสตราจารย์ ดร.บุรัสกร นันทดิลก</div>
+        <div class="prof-pos">อาจารย์ประจำสาขาคณิตศาสตร์</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:buraskorn@mju.ac.th" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=30430&f_cmd=2&officercode=30430&officername=%BC%D9%E9%AA%E8%C7%C2%C8%D2%CA%B5%C3%D2%A8%D2%C3%C2%EC+%B4%C3%2E+%BA%D8%C3%D1%CA%A1%C3+%B9%D1%B9%B7%B4%D4%C5%A1&remark=&officeremail=buraskorn%40mju%2Eac%2Eth" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+      </div>
+    </div>
+
+    <!-- คนที่ 11: ผศ.ดร.ชนิกานต์ เอมหฤทัย -->
+    <div class="prof-card" onclick="openProfModal('p12')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681222162237_141376.png" alt="ผู้ช่วยศาสตราจารย์ ดร.ชนิกานต์ เอมหฤทัย" /></div>
+        <div class="prof-name">ผู้ช่วยศาสตราจารย์ ดร.ชนิกานต์ เอมหฤทัย</div>
+        <div class="prof-pos">อาจารย์ประจำสาขาคณิตศาสตร์</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:chanikan@mju.ac.th" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=17274&f_cmd=2&officercode=012&officername=%BC%D9%E9%AA%E8%C7%C2%C8%D2%CA%B5%C3%D2%A8%D2%C3%C2%EC+%B4%C3%2E+%AA%B9%D4%A1%D2%B9%B5%EC+%E0%CD%C1%CB%C4%B7%D1%C2&remark=&officeremail=chanikan%40mju%2Eac%2Eth" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+      </div>
+    </div>
+
+    <!-- คนที่ 12: ผศ.ดร.อุไรลักษมณ์ สิงห์ทอง -->
+    <div class="prof-card" onclick="openProfModal('p12_u')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681222162221_158636.png" alt="ผู้ช่วยศาสตราจารย์ ดร.อุไรลักษมณ์ สิงห์ทอง" /></div>
+        <div class="prof-name">ผู้ช่วยศาสตราจารย์ ดร.อุไรลักษมณ์ สิงห์ทอง</div>
+        <div class="prof-pos">อาจารย์ประจำสาขาคณิตศาสตร์</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:urailuk@mju.ac.th" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=29731&f_cmd=2&officercode=29731&officername=%BC%D9%E9%AA%E8%C7%C2%C8%D2%CA%B5%C3%D2%A8%D2%C3%C2%EC+%B4%C3%2E+%CD%D8%E4%C3%C5%D1%A1%C9%C1%B3%EC+%CA%D4%A7%CB%EC%B7%CD%A7&remark=&officeremail=urailuk%40mju%2Eac%2Eth" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+      </div>
+    </div>
+
+    <!-- คนที่ 13: ผศ.ดร.พิลาศลักษณ์ ศรแก้ว -->
+    <div class="prof-card" onclick="openProfModal('p3')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681222162304_928022.png" alt="ผู้ช่วยศาสตราจารย์ ดร.พิลาศลักษณ์ ศรแก้ว" /></div>
+        <div class="prof-name">ผู้ช่วยศาสตราจารย์ ดร.พิลาศลักษณ์ ศรแก้ว</div>
+        <div class="prof-pos">อาจารย์ประจำสาขาคณิตศาสตร์</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:pisorn@mju.ac.th" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=615&f_cmd=2&officercode=568&officername=%BC%D9%E9%AA%E8%C7%C2%C8%D2%CA%B5%C3%D2%A8%D2%C3%C2%EC+%B4%C3%2E+%BE%D4%C5%D2%C8%C5%D1%A1%C9%B3%EC+%C8%C3%E1%A1%E9%C7&remark=&officeremail=pisorn%40mju%2Eac%2Eth" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+      </div>
+    </div>
+
+    <!-- คนที่ 14: ผศ.ดร.เจนจิรา ทิพย์ชะ -->
+    <div class="prof-card" onclick="openProfModal('p7')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681222162231_248158.png" alt="ผู้ช่วยศาสตราจารย์ ดร.เจนจิรา ทิพย์ชะ" /></div>
+        <div class="prof-name">ผู้ช่วยศาสตราจารย์ ดร.เจนจิรา ทิพย์ชะ</div>
+        <div class="prof-pos">อาจารย์ประจำสาขาคณิตศาสตร์</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:jenjira_tc@mju.ac.th" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=33350&f_cmd=2&officercode=33350&officername=%BC%D9%E9%AA%E8%C7%C2%C8%D2%CA%B5%C3%D2%A8%D2%C3%C2%EC+%B4%C3%2E+%E0%A8%B9%A8%D4%C3%D2+%B7%D4%BE%C2%EC%AA%D0&remark=&officeremail=jenjira%5Ftc%40mju%2Eac%2Eth" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+      </div>
+    </div>
+
+    <!-- คนที่ 15: อ.ดร.ธวัชชัย เพชรธาราทิพย์ -->
+    <div class="prof-card" onclick="openProfModal('p15_t')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681222162242_825238.png" alt="อาจารย์ ดร.ธวัชชัย เพชรธาราทิพย์" /></div>
+        <div class="prof-name">อาจารย์ ดร.ธวัชชัย เพชรธาราทิพย์</div>
+        <div class="prof-pos">อาจารย์ประจำสาขาคณิตศาสตร์</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:tawatchai_p@mju.ac.th" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=25390&f_cmd=2&officercode=25390&officername=%CD%D2%A8%D2%C3%C2%EC+%B4%C3%2E+%B8%C7%D1%AA%AA%D1%C2+%E0%BE%AA%C3%B8%D2%C3%D2%B7%D4%BE%C2%EC&remark=&officeremail=tawatchai%5Fp%40mju%2Eac%2Eth" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+      </div>
+    </div>
+
+    <!-- คนที่ 16: อ.ดร.พศิน มรุปัณฑ์ธร -->
+    <div class="prof-card" onclick="openProfModal('p9')">
+      <div>
+        <div class="prof-img-wrap"><img src="goverment/25610410092154_math2/Doc_25681222162322_332853.png" alt="อาจารย์ ดร.พศิน มรุปัณฑ์ธร" /></div>
+        <div class="prof-name">อาจารย์ ดร.พศิน มรุปัณฑ์ธร</div>
+        <div class="prof-pos">อาจารย์ประจำสาขาคณิตศาสตร์</div>
+        <div class="prof-hint-badge">🔍 คลิกเพื่อดูประวัติและผลงานวิจัย</div>
+      </div>
+      <div class="prof-actions" onclick="event.stopPropagation();">
+        <a href="mailto:quantfilab@gmail.com" class="prof-icon-btn" title="อีเมล"><img src="goverment/25610410092154_math2/Doc_25681226095746_880504.png" alt="Email" /></a>
+        <a href="https://reg.mju.ac.th/registrar/teach_time.asp?officerid=37450&f_cmd=2&officercode=37450&officername=%CD%D2%A8%D2%C3%C2%EC+%B4%C3%2E+%BE%C8%D4%B9+%C1%C3%D8%BB%D1%B3%B1%EC%B8%C3&remark=&officeremail=" target="_blank" class="prof-icon-btn" title="ตารางสอนอาจารย์"><img src="goverment/25610410092154_math2/Doc_25681225103030_476945.png" alt="Schedule" /></a>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- MODAL POPUP WINDOW -->
+<div id="profModal" class="prof-modal-overlay" onclick="closeProfModal(event)">
+  <div class="prof-modal-card" onclick="event.stopPropagation();">
+    <span class="prof-modal-close" onclick="closeProfModal()">&times;</span>
+    
+    <div class="prof-modal-header">
+      <img id="mImg" class="prof-modal-header-img" src="" alt="" />
+      <div class="prof-modal-header-info">
+        <h3 id="mNameTh" style="margin: 0 0 4px 0; color: #0056b3; font-size: 1.3em;"></h3>
+        <h4 id="mNameEn" style="margin: 0 0 10px 0; color: #555; font-weight: normal; font-size: 0.95em;"></h4>
+        <p style="margin: 3px 0; font-size: 0.9em; line-height: 1.5;">
+          <strong>ตำแหน่งทางวิชาการ:</strong> <span id="mAcademicPos"></span><br />
+          <strong>ตำแหน่งในหลักสูตร:</strong> <span id="mPos"></span><br />
+          <strong>สาขาวิชา:</strong> คณิตศาสตร์<br />
+          <strong>หน่วยงานสังกัด:</strong> คณะวิทยาศาสตร์ มหาวิทยาลัยแม่โจ้
+        </p>
+        <p style="margin: 10px 0 0 0; font-size: 0.9em;">
+          <strong>โทรศัพท์:</strong> <span id="mPhone">053-873-881-8</span><br />
+          <strong>E-mail:</strong> <a id="mEmail" href="" style="color: #0056b3;"></a>
+        </p>
+      </div>
+    </div>
+
+    <div class="prof-modal-body">
+      <div class="prof-modal-sec-title">🎓 ประวัติการศึกษา (Education)</div>
+      <table class="prof-edu-table">
+        <thead>
+          <tr>
+            <th style="width: 20%;">คุณวุฒิ</th>
+            <th style="width: 30%;">สาขาวิชา</th>
+            <th style="width: 35%;">สถาบันการศึกษา</th>
+            <th style="width: 15%;">ปี พ.ศ.</th>
+          </tr>
+        </thead>
+        <tbody id="mEduBody"></tbody>
+      </table>
+
+      <div class="prof-modal-sec-title">💡 สาขาวิชาที่มีความชำนาญพิเศษ (Specialization)</div>
+      <ul id="mSpecList" class="custom-ul"></ul>
+
+      <div class="prof-modal-sec-title">📖 ความชำนาญในการสอนรายวิชาในหลักสูตร</div>
+      <ul id="mTeachingList" class="custom-ul"></ul>
+
+      <div class="prof-modal-sec-title">📝 ผลงานวิจัย (Publications)</div>
+      <ul id="mPubList" class="custom-ul"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- JAVASCRIPT: DATA OBJECT & MODAL HANDLER -->
+<script>
+  const professorsData = {
+    "p1": {
+      nameTh: "ผู้ช่วยศาสตราจารย์เยาวลักษณ์ คงธรรม",
+      nameEn: "Asst. Prof. Yaowaluk Khongtham",
+      academicPos: "ผู้ช่วยศาสตราจารย์",
+      pos: "ประธานอาจารย์ผู้รับผิดชอบหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681222162326_197730.png",
+      email: "yaowa.k@mju.ac.th",
+      phone: "053-873-881-8",
+      edu: [{ degree: "วิทยาศาสตรมหาบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยเชียงใหม่", year: "-" }],
+      spec: ["คณิตศาสตร์ประยุกต์"],
+      teaching: ["คณิตศาสตร์"],
+      pub: ["ผลงานวิจัยทางคณิตศาสตร์ประยุกต์"]
+    },
+    "p2": {
+      nameTh: "ผู้ช่วยศาสตราจารย์ ดร.จีรวรรณ พัชรประกิติ",
+      nameEn: "Asst. Prof. Dr. Jeerawan Patcharaprakiti",
+      academicPos: "ผู้ช่วยศาสตราจารย์",
+      pos: "รองประธานอาจารย์ผู้รับผิดชอบหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681222162216_66932.png",
+      email: "jeerawan_s@mju.ac.th",
+      phone: "053-873-881-8",
+      edu: [
+        { degree: "ปรัชญาดุษฎีบัณฑิต", major: "คณิตศาสตร์ประยุกต์", school: "มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี", year: "2554" },
+        { degree: "ประกาศนียบัตรบัณฑิต", major: "หลักสูตรและการสอน", school: "มหาวิทยาลัยสุโขทัยธรรมาธิราช", year: "2553" },
+        { degree: "วิทยาศาสตรมหาบัณฑิต", major: "คณิตศาสตร์ประยุกต์", school: "มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี", year: "2548" },
+        { degree: "วิทยาศาสตรบัณฑิต", major: "คณิตศาสตร์ประยุกต์", school: "สถาบันเทคโนโลยีพระจอมเกล้าพระนครเหนือ", year: "2546" }
+      ],
+      spec: [
+        "การวิเคราะห์เชิงตัวเลข (Numerical Analysis)",
+        "การหาค่าเหมาะที่สุด (Optimization)",
+        "สมการเชิงอนุพันธุ์ (Differential Equations)",
+        "กำหนดการเชิงคณิตศาสตร์ (Mathematical Programming)",
+        "การจำลองแบบเชิงคณิตศาสตร์ (Mathematical Modelling)"
+      ],
+      teaching: ["คณิตศาสตร์ประยุกต์", "วิทยาการข้อมูล"],
+      pub: [
+        "Patcharaprakiti, J., Jakkawan, R., & Patcharaprakiti, N. (2024). Optimization of Batik production using the quick simplex method. Burapha Science Journal, 29(1), 147–159.",
+        "Patcharaprakiti, J., & Patcharaprakiti, N. (2023). A development of soil nutrients and water control system for rice cultivation with alternating wet and dry techniques. The 15th STISWB2023, 147-153.",
+        "Patcharaprakiti, J. (2025). A mathematical model for predicting the height of dipterocarpus alatus for Carbon sequestration assessment. The 17th STISWB2025, 67-70."
+      ]
+    },
+    "p3": {
+      nameTh: "ผู้ช่วยศาสตราจารย์ ดร.พิลาศลักษณ์ ศรแก้ว",
+      nameEn: "Asst. Prof. Dr. Pilasluck Sornkaew",
+      academicPos: "ผู้ช่วยศาสตราจารย์",
+      pos: "อาจารย์ประจำหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681222162304_928022.png",
+      email: "pisorn@mju.ac.th",
+      phone: "053-873-882",
+      edu: [
+        { degree: "ปรัชญาดุษฎีบัณฑิต", major: "คณิตศาสตร์ประยุกต์", school: "มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี", year: "2556" },
+        { degree: "วิทยาศาสตรมหาบัณฑิต", major: "คณิตศาสตร์ประยุกต์", school: "มหาวิทยาลัยเทคโนโลยีพระจอมเกล้าธนบุรี", year: "2541" },
+        { degree: "ครุศาสตรบัณฑิต", major: "คณิตศาสตร์", school: "สถาบันราชภัฏเพชรบุรีวิทยาลงกรณ์", year: "2539" }
+      ],
+      spec: ["การวิเคราะห์เชิงตัวเลข (Numerical Analysis)", "สมการเชิงอนุพันธุ์ (Differential Equations)", "กำหนดการเชิงเส้น (Linear Programming)"],
+      teaching: ["คณิตศาสตร์ประยุกต์", "คณิตศาสตร์การเงินและการประกันภัย"],
+      pub: [
+        "Pilasluck Sornkaew. (2023). Using Sadik transform in differential equation. IJFMR, 5(3).",
+        "Pilasluck Sornkaew. (2023). Differential operator and Laplace transform for linear differential equations. RJST, 5(3), 1-4.",
+        "พิลาศลักษณ์ ศรแก้ว และ ชนัญธิดา ปิ่นแสงแก้ว. (2023). การหาผลเฉลยของสมการเชิงอนุพันธ์สามัญเชิงเส้นอันดับหนึ่งโดยใช้วิธีอนุกรมกำลังและอินทิเกรต. วารสารวิทยาศาสตร์และเทคโนโลยีสู่ชุมชน (STC), 1(2), 46-55."
+      ]
+    },
+    "p4": {
+      nameTh: "ผู้ช่วยศาสตราจารย์กมลเทพ มีคำ",
+      nameEn: "Asst. Prof. Kamonthep Mecam",
+      academicPos: "ผู้ช่วยศาสตราจารย์",
+      pos: "กรรมการอาจารย์ผู้รับผิดชอบหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681223121252_364556.png",
+      email: "kamonthep@mju.ac.th",
+      phone: "053-873-881-8",
+      edu: [
+        { degree: "วิทยาศาสตรมหาบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยเชียงใหม่", year: "2548" },
+        { degree: "วิทยาศาสตรบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยเชียงใหม่", year: "2540" }
+      ],
+      spec: ["พีชคณิต (Algebra)", "ทอพอโลยี (Topology)", "สมการเชิงอนุพันธ์ (Differential Equation)"],
+      teaching: ["คณิตศาสตร์", "คณิตศาสตร์การเงินและการประกันภัย"],
+      pub: [
+        "Petaratip T., Sriaiamkul, B., & Mecam, K. (2025). Solution of mathematical model for unemployment using the new modification of Adomian decomposition method. หนังสือประมวลบทความการประชุมวิทยาศาสตร์วิจัย ครั้งที่ 16, 537–546."
+      ]
+    },
+    "p5": {
+      nameTh: "อาจารย์ ดร.พิกุล ศรีดารัตน์",
+      nameEn: "Dr. Phikul Sridarat",
+      academicPos: "อาจารย์ (ดร.)",
+      pos: "เลขานุการอาจารย์ผู้รับผิดชอบหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681222162252_40212.png",
+      email: "phikul@mju.ac.th",
+      phone: "053-873-881-8",
+      edu: [
+        { degree: "ปรัชญาดุษฎีบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยเชียงใหม่", year: "2561" },
+        { degree: "วิทยาศาสตรมหาบัณฑิต", major: "คณิตศาสตร์", school: "จุฬาลงกรณ์มหาวิทยาลัย", year: "2545" },
+        { degree: "วิทยาศาสตรบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยเชียงใหม่", year: "2542" }
+      ],
+      spec: [
+        "ทฤษฎีจุดตรึงและการประยุกต์ (Fixed Point Theory and applications)",
+        "การวิเคราะห์เชิงจริง (Real Analysis)",
+        "การวิเคราะห์เชิงฟังก์ชัน (Functional Analysis)"
+      ],
+      teaching: ["คณิตศาสตร์", "คณิตศาสตร์การเงินและการประกันภัย"],
+      pub: [
+        "Sridarat, P., Berinde, V., & Suantai, S. (2025). Coincidence and common fixed point theorems for nonself G-almost contractions in Banach spaces endowed with a graph. CMI, 34(2), 221-230.",
+        "เชาว์วรรธน เกินกลาง, สุพรรษา แม่นยำ, อรรถยา สมศรี, พัฒนพงศ์ เทียนชัย และ พิกุล ศรีดารัตน์. (2568). การวิเคราะห์กำไรสูงสุดของการผลิตเมล็ดกาแฟคั่ว... วารสารแม่โจ้เทคโนโลยีสารสนเทศและนวัตกรรม, 11(3), 258-277."
+      ]
+    },
+    "p6": {
+      nameTh: "รองศาสตราจารย์พัฒนพงศ์ เทียนชัย",
+      nameEn: "Assoc. Prof. Pattanapong Tianchai",
+      academicPos: "รองศาสตราจารย์",
+      pos: "อาจารย์ประจำหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681222162258_288932.png",
+      email: "pattana@mju.ac.th",
+      phone: "053-873-881-8",
+      edu: [
+        { degree: "วิทยาศาสตรมหาบัณฑิต", major: "คณิตศาสตร์ประยุกต์", school: "มหาวิทยาลัยเชียงใหม่", year: "2539" },
+        { degree: "ครุศาสตรบัณฑิต", major: "คณิตศาสตร์", school: "วิทยาลัยครูเชียงใหม่", year: "2535" }
+      ],
+      spec: ["Functional Analysis", "Fixed Point Theory and Applications"],
+      teaching: ["คณิตศาสตร์"],
+      pub: [
+        "Tianchai, P. (2023). Split monotone variational inclusion with errors for image feature extraction with multiple-image blends problem. Fixed Point Theory and Algorithms for Sciences and Engineering, 2023(5)."
+      ]
+    },
+    "p7": {
+      nameTh: "ผู้ช่วยศาสตราจารย์ ดร.เจนจิรา ทิพย์ชะ",
+      nameEn: "Asst. Prof. Dr. Jenjira Thipcha",
+      academicPos: "ผู้ช่วยศาสตราจารย์ (ดร.)",
+      pos: "อาจารย์ประจำหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681222162231_248158.png",
+      email: "jenjira_tc@mju.ac.th",
+      phone: "053-873-881-8",
+      edu: [
+        { degree: "ปรัชญาดุษฎีบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยเชียงใหม่", year: "2559" },
+        { degree: "วิทยาศาสตรมหาบัณฑิต", major: "คณิตศาสตร์ประยุกต์", school: "มหาวิทยาลัยเชียงใหม่", year: "2548" },
+        { degree: "วิทยาศาสตรบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยศรีนครินทรวิโรฒประสานมิตร", year: "2545" }
+      ],
+      spec: ["การวิเคราะห์เสถียรภาพ (stability analysis)", "ทฤษฎีการควบคุม (control theory)", "สมการเชิงอนุพันธ์สามัญ", "สมการเชิงอนุพันธ์ย่อย"],
+      teaching: ["คณิตศาสตร์ประยุกต์", "คณิตศาสตร์"],
+      pub: [
+        "Kaewbanjak, N., Stephen, A., Srinidhi, A., Raja, R., Kaewbanjak, N., Mukdasai, K., Thipcha, J., & Singkibud, P. (2024). Robust impulse nonlinear delayed multi-agent systems: an exponential synchronization. Journal of Mathematics and Computer Science, 34(2), 162–175.",
+        "Thipcha, J., et al. (2024). A memory state-feedback controller via random pocket dropouts... Journal of Mathematics and Computer Science, 33(1), 71–86."
+      ]
+    },
+    "p8": {
+      nameTh: "ผู้ช่วยศาสตราจารย์ ดร.สิตา ชากฤษณ์",
+      nameEn: "Asst. Prof. Dr. Sita Charkrit",
+      academicPos: "ผู้ช่วยศาสตราจารย์ (ดร.)",
+      pos: "อาจารย์ประจำหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681222162308_559546.png",
+      email: "sita@mju.ac.th",
+      phone: "053-873-881-8",
+      edu: [
+        { degree: "Doctor of Philosophy", major: "Mathematics", school: "The University of Texas at Arlington, U.S.A.", year: "2562" },
+        { degree: "Master of Science", major: "Mathematics", school: "The University of Texas at Arlington, U.S.A.", year: "2560" },
+        { degree: "วิทยาศาสตรมหาบัณฑิต", major: "คณิตศาสตร์ประยุกต์", school: "มหาวิทยาลัยเชียงใหม่", year: "2549" },
+        { degree: "วิทยาศาสตรบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยรามคำแหง", year: "2546" }
+      ],
+      spec: ["สมการเชิงอนุพันธ์ (differential equation)", "การวิเคราะห์เชิงตัวเลข (numerical analysis)", "คณิตศาสตร์เชิงคณนา (computational mathematics)"],
+      teaching: ["คณิตศาสตร์ประยุกต์", "วิทยาการข้อมูล"],
+      pub: [
+        "Charkrit, S. (2025). A reliable algorithm for solving higher order Schrödinger equations with enhanced convergence. Partial Differential Equations in Applied Mathematics, 13, 101147.",
+        "Charkrit, S. (2025). Explicit solution of Lane-Emden type equations via a novel recurrence and Padé approximation approach. Applied Numerical Mathematics, 218, 159–181."
+      ]
+    },
+    "p9": {
+      nameTh: "อาจารย์ ดร.พศิน มรุปัณฑ์ธร",
+      nameEn: "Dr. Pasin Marupanthorn",
+      academicPos: "อาจารย์ (ดร.)",
+      pos: "อาจารย์ประจำหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681222162322_332853.png",
+      email: "quantfilab@gmail.com",
+      phone: "053-873-881-8",
+      edu: [
+        { degree: "Doctor of Philosophy", major: "Actuarial Mathematics", school: "Heriot-Watt University", year: "2568" },
+        { degree: "Master of Science", major: "Mathematical Modelling", school: "University of Birmingham", year: "2561" },
+        { degree: "วิทยาศาสตรมหาบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยธรรมศาสตร์", year: "2557" },
+        { degree: "วิทยาศาสตรบัณฑิต", major: "คณิตศาสตร์ประยุกต์", school: "มหาวิทยาลัยธรรมศาสตร์", year: "2553" }
+      ],
+      spec: [
+        "การจัดการกลุ่มสินทรัพย์ (Portfolio Management)",
+        "การกำหนดราคาสินทรัพย์ (Asset Pricing)",
+        "การเทรดโดยใช้อัลกอริทึม (Algorithmic Trading)",
+        "คณิตศาสตร์บำนาญ (Pension Mathematics)",
+        "การจัดการความเสี่ยงเชิงปริมาณ (Quantitative Risk Management)"
+      ],
+      teaching: ["คณิตศาสตร์ประยุกต์", "คณิตศาสตร์การเงินและการประกันภัย", "วิทยาการข้อมูล"],
+      pub: [
+        "Marupanthorn, P., et al. (2024). Mechanisms for implementing fossil fuel divestment in portfolio management with impact on risk, return and carbon reduction. Energy Economics, 136, 107724.",
+        "Marupanthorn, P., et al. (2024). DivFolio: a Shiny application for portfolio divestment in green finance wealth management. Annals of Actuarial Science, 18(2), 379-422."
+      ]
+    },
+    "p10": {
+      nameTh: "รองศาสตราจารย์ ดร.วันจักร สาทสนิท",
+      nameEn: "Assoc. Prof. Dr. Wanchak Satsanit",
+      academicPos: "รองศาสตราจารย์ (ดร.)",
+      pos: "กรรมการอาจารย์ผู้รับผิดชอบหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681222162318_331734.png",
+      email: "wanchack@gmail.com",
+      phone: "086-9109209",
+      edu: [
+        { degree: "วิทยาศาสตรดุษฎีบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยเชียงใหม่", year: "2553" },
+        { degree: "วิทยาศาสตรมหาบัณฑิต", major: "คณิตศาสตร์ประยุกต์", school: "มหาวิทยาลัยเชียงใหม่", year: "2545" },
+        { degree: "วิศวกรรมศาสตรบัณฑิต", major: "สิ่งแวดล้อม", school: "มหาวิทยาลัยเชียงใหม่", year: "2538" },
+        { degree: "วิทยาศาสตรบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยรามคำแหง", year: "2535" }
+      ],
+      spec: ["สมการเชิงอนุพันธ์สามัญ", "สมการเชิงอนุพันธ์ย่อย"],
+      teaching: ["คณิตศาสตร์"],
+      pub: ["ผลงานวิจัยตีพิมพ์ทางคณิตศาสตร์และสมการเชิงอนุพันธ์"]
+    },
+    "p11": {
+      nameTh: "รองศาสตราจารย์ ดร.ดารา ภูสง่า",
+      nameEn: "Assoc. Prof. Dr. Dara Phusanga",
+      academicPos: "รองศาสตราจารย์ (ดร.)",
+      pos: "อาจารย์ประจำหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681222162313_79789.png",
+      email: "darapu@mju.ac.th",
+      phone: "053-873-881-8",
+      edu: [
+        { degree: "Doctor rerum naturalium", major: "Mathematics", school: "Potsdam University", year: "2556" },
+        { degree: "วิทยาศาสตรมหาบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยขอนแก่น", year: "2543" },
+        { degree: "ครุศาสตรบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยราชภัฏมหาสารคาม", year: "2536" }
+      ],
+      spec: ["พีชคณิตนามธรรม (Abstract algebra)", "ทฤษฎีกึ่งกรุป (Theory of Semigroup)"],
+      teaching: ["คณิตศาสตร์"],
+      pub: ["ผลงานวิจัยพีชคณิตนามธรรมและทฤษฎีกึ่งกรุป"]
+    },
+    "p8_k": {
+      nameTh: "รองศาสตราจารย์ ดร.เกรียงไกร ราชกิจ",
+      nameEn: "Assoc. Prof. Dr. Kreangkri Rajchakit",
+      academicPos: "รองศาสตราจารย์ (ดร.)",
+      pos: "อาจารย์ประจำหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681222162225_393108.png",
+      email: "kreangkri@mju.ac.th",
+      phone: "053-873-881-8",
+      edu: [{ degree: "ปรัชญาดุษฎีบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยเชียงใหม่", year: "-" }],
+      spec: ["ระบบโครงข่ายประสาทและการควบคุม (Neural Networks & Control Systems)"],
+      teaching: ["คณิตศาสตร์"],
+      pub: ["ผลงานวิจัยโครงข่ายประสาทและการวิเคราะห์ระบบควบคุม"]
+    },
+    "p10_b": {
+      nameTh: "ผู้ช่วยศาสตราจารย์ ดร.บุรัสกร นันทดิลก",
+      nameEn: "Asst. Prof. Dr. Buraskorn Nuntadilok",
+      academicPos: "ผู้ช่วยศาสตราจารย์ (ดร.)",
+      pos: "อาจารย์ประจำหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681222162246_324706.png",
+      email: "buraskorn@mju.ac.th",
+      phone: "053-873-881-8",
+      edu: [{ degree: "ปรัชญาดุษฎีบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยเชียงใหม่", year: "-" }],
+      spec: ["คณิตศาสตร์ประยุกต์และตัวแบบทางคณิตศาสตร์"],
+      teaching: ["คณิตศาสตร์"],
+      pub: ["ผลงานวิจัยตีพิมพ์ทางคณิตศาสตร์ประยุกต์"]
+    },
+    "p12_u": {
+      nameTh: "ผู้ช่วยศาสตราจารย์ ดร.อุไรลักษมณ์ สิงห์ทอง",
+      nameEn: "Asst. Prof. Dr. Urailuk Singthong",
+      academicPos: "ผู้ช่วยศาสตราจารย์ (ดร.)",
+      pos: "อาจารย์ประจำหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681222162221_158636.png",
+      email: "urailuk@mju.ac.th",
+      phone: "053-873-881-8",
+      edu: [{ degree: "ปรัชญาดุษฎีบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยเชียงใหม่", year: "-" }],
+      spec: ["คณิตศาสตร์ประยุกต์"],
+      teaching: ["คณิตศาสตร์"],
+      pub: ["ผลงานวิจัยทางคณิตศาสตร์ประยุกต์"]
+    },
+    "p12": {
+      nameTh: "ผู้ช่วยศาสตราจารย์ ดร.ชนิกานต์ เอมหฤทัย",
+      nameEn: "Asst. Prof. Dr. Chanikan Emharuethai",
+      academicPos: "ผู้ช่วยศาสตราจารย์ (ดร.)",
+      pos: "อาจารย์ประจำหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681222162237_141376.png",
+      email: "chanikan@mju.ac.th",
+      phone: "053-873-881-8",
+      edu: [
+        { degree: "วิทยาศาสตรดุษฎีบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยเชียงใหม่", year: "2558" },
+        { degree: "วิทยาศาสตรมหาบัณฑิต", major: "คณิตศาสตร์ประยุกต์", school: "มหาวิทยาลัยเชียงใหม่", year: "2544" },
+        { degree: "วิทยาศาสตรบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยเชียงใหม่", year: "2542" }
+      ],
+      spec: [
+        "การวิเคราะห์เสถียรภาพ (stability analysis)",
+        "ทฤษฎีการควบคุม (control theory)",
+        "สมการเชิงอนุพันธ์ (differential equation)"
+      ],
+      teaching: ["คณิตศาสตร์ประยุกต์", "คณิตศาสตร์การเงินและการประกันภัย"],
+      pub: [
+        "Emharuethai, C., & Nadee, W. (2026). Analysis of global asymptotic stability for a class of SVIR models. The 7th Asia Joint Conference on Computing and Electrical Technologies (AJCC 2026), 8-9, Sapporo, Japan. May 12-15, 2026."
+      ]
+    },
+    "p15_t": {
+      nameTh: "อาจารย์ ดร.ธวัชชัย เพชรธาราทิพย์",
+      nameEn: "Dr. Tawatchai Petcharathip",
+      academicPos: "อาจารย์ (ดร.)",
+      pos: "อาจารย์ประจำหลักสูตร",
+      img: "goverment/25610410092154_math2/Doc_25681222162242_825238.png",
+      email: "tawatchai_p@mju.ac.th",
+      phone: "053-873-881-8",
+      edu: [{ degree: "ปรัชญาดุษฎีบัณฑิต", major: "คณิตศาสตร์", school: "มหาวิทยาลัยเชียงใหม่", year: "-" }],
+      spec: ["คณิตศาสตร์ประยุกต์"],
+      teaching: ["คณิตศาสตร์"],
+      pub: ["ผลงานวิจัยทางคณิตศาสตร์ประยุกต์"]
+    }
+  };
+
+  function openProfModal(id) {
+    const p = professorsData[id];
+    if (!p) return;
+
+    document.getElementById("mImg").src = p.img;
+    document.getElementById("mNameTh").innerText = p.nameTh;
+    document.getElementById("mNameEn").innerText = p.nameEn || "";
+    document.getElementById("mAcademicPos").innerText = p.academicPos || "-";
+    document.getElementById("mPos").innerText = p.pos;
+    document.getElementById("mPhone").innerText = p.phone || "053-873-881-8";
+    
+    const emailElem = document.getElementById("mEmail");
+    emailElem.href = "mailto:" + p.email;
+    emailElem.innerText = p.email;
+
+    // ตารางประวัติการศึกษา
+    const eduBody = document.getElementById("mEduBody");
+    eduBody.innerHTML = "";
+    if (p.edu && p.edu.length > 0) {
+      p.edu.forEach(e => {
+        eduBody.innerHTML += `<tr>
+          <td><strong>${e.degree}</strong></td>
+          <td>${e.major}</td>
+          <td>${e.school}</td>
+          <td>${e.year}</td>
+        </tr>`;
+      });
+    }
+
+    // ความชำนาญพิเศษ
+    const specList = document.getElementById("mSpecList");
+    specList.innerHTML = "";
+    if (p.spec && p.spec.length > 0) {
+      p.spec.forEach(s => { specList.innerHTML += `<li>${s}</li>`; });
+    }
+
+    // รายวิชาที่สอน
+    const teachingList = document.getElementById("mTeachingList");
+    teachingList.innerHTML = "";
+    if (p.teaching && p.teaching.length > 0) {
+      p.teaching.forEach(t => { teachingList.innerHTML += `<li>${t}</li>`; });
+    }
+
+    // ผลงานวิจัย
+    const pubList = document.getElementById("mPubList");
+    pubList.innerHTML = "";
+    if (p.pub && p.pub.length > 0) {
+      p.pub.forEach(pb => { pubList.innerHTML += `<li style="margin-bottom: 6px;">${pb}</li>`; });
+    }
+
+    document.getElementById("profModal").style.display = "flex";
+  }
+
+  function closeProfModal(e) {
+    document.getElementById("profModal").style.display = "none";
+  }
+</script>
+
+</body>
+</html>
