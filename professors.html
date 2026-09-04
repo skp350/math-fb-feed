@@ -21,11 +21,14 @@
       background-color: #ffffff;
       color: #333333;
       line-height: 1.6;
-      padding: 20px 10px;
+      padding: 10px 0;
+      overflow-x: hidden;
     }
     .container {
-      max-width: 1100px;
+      width: 100%;
+      max-width: 100%;
       margin: 0 auto;
+      padding: 0 15px;
     }
     
     .section-header {
@@ -949,6 +952,18 @@
   function closeProfModal(e) {
     document.getElementById("profModal").style.display = "none";
   }
+
+  // Auto-adjust iframe height
+  function sendHeight() {
+    const height = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+    if (window.parent) {
+      window.parent.postMessage({ type: 'setIframeHeight', height: height }, '*');
+    }
+  }
+  window.addEventListener('load', sendHeight);
+  window.addEventListener('resize', sendHeight);
+  setTimeout(sendHeight, 500);
+  setTimeout(sendHeight, 1500);
 </script>
 
 </body>
