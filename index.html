@@ -18,29 +18,30 @@
 
         body {
             background-color: #ffffff;
-            padding: 10px;
+            padding: 0;
             margin: 0;
+            overflow-x: hidden;
         }
 
-        /* เลย์เอาต์ 5 ข่าว (แถวบน 3 / แถวล่าง 2 จัดอยู่ตรงกลาง) */
+        /* เลย์เอาต์จัดวางกึ่งกลาง - การ์ดทุกใบขนาดเท่ากันปกติ */
         .feed-container-5 {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
-            gap: 16px;
+            justify-content: center; /* จัด 2 ข่าวล่างให้อยู่ตรงกลางเป๊ะๆ */
+            gap: 12px;
             width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
+            margin: 0;
+            padding: 0;
         }
 
+        /* การ์ดข่าวทุกใบมีขนาดปกติเท่ากันทั้งหมด (33.3% - 8px) */
         .news-card-5 {
-            width: calc(33.333% - 12px);
-            min-width: 280px;
+            width: calc(33.333% - 8px);
             background: #ffffff;
             border: 1px solid #e2e8f0;
-            border-radius: 12px;
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -50,16 +51,15 @@
         }
 
         .news-card-5:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.1);
         }
 
-        /* แสดงรูปภาพเต็มโปสเตอร์ 100% ไม่โดนตัดขอบ */
+        /* รูปภาพขยายเต็มกรอบสวยงาม */
         .card-img-wrapper {
             width: 100%;
-            height: 260px;
+            height: 220px;
             background: #0f172a;
-            /* พื้นหลังสีเข้มรองรับรูป */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -67,16 +67,14 @@
         }
 
         .card-img {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-            /* รูปแสดงผลเต็มรูป 100% ไม่โดนตัด */
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center;
         }
 
         .card-content {
-            padding: 14px;
+            padding: 10px 12px;
             flex-grow: 1;
             display: flex;
             flex-direction: column;
@@ -86,31 +84,31 @@
         .author-info {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
+            gap: 6px;
+            margin-bottom: 6px;
         }
 
         .author-icon {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             background: #d81b60;
             color: #fff;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: bold;
         }
 
         .author-name {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
             color: #1e293b;
         }
 
         .author-date {
-            font-size: 11px;
+            font-size: 10px;
             color: #64748b;
             margin-left: auto;
         }
@@ -118,12 +116,12 @@
         .card-text {
             font-size: 12px;
             color: #334155;
-            line-height: 1.5;
+            line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .read-more {
@@ -135,7 +133,7 @@
 
         .status-msg {
             text-align: center;
-            padding: 60px;
+            padding: 40px;
             color: #64748b;
             font-size: 14px;
         }
@@ -162,7 +160,7 @@
         fetch(apiUrl)
             .then(res => res.json())
             .then(data => {
-                const posts = (data.items || []).slice(0, 5); // ดึงเฉพาะ 5 โพสต์ล่าสุด
+                const posts = (data.items || []).slice(0, 5);
                 const statusEl = document.getElementById('status');
 
                 if (posts.length === 0) {
@@ -176,7 +174,6 @@
                 posts.forEach(post => {
                     const dateStr = post.pubDate ? new Date(post.pubDate).toLocaleDateString('th-TH', { month: 'short', day: 'numeric' }) : 'ล่าสุด';
 
-                    // สกัดข้อความข่าวสด
                     let cleanText = '';
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = post.description || post.content || post.title || '';
@@ -184,7 +181,6 @@
                     cleanText = cleanText.trim().replace(/\s+/g, ' ');
                     if (!cleanText || cleanText.length < 5) cleanText = post.title || 'โพสต์ข่าวสารกิจกรรม สาขาวิชาคณิตศาสตร์ มหาวิทยาลัยแม่โจ้';
 
-                    // สกัดรูปภาพสด
                     let imgUrl = post.thumbnail || (post.enclosure && post.enclosure.link);
                     if (!imgUrl && post.description) {
                         const imgMatch = post.description.match(/src=["'](.*?)["']/);
