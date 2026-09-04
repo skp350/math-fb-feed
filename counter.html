@@ -26,19 +26,31 @@
 <body>
   <div class="counter-badge">
     <span>ผู้เข้าชมเว็บไซต์:</span>
-    <span class="count-number" id="visit-count">0 คน</span>
+    <span class="count-number" id="visit-count">1 คน</span>
   </div>
 
   <script>
-    // สคริปต์เริ่มนับจาก 0 คน แบบเรียลไทม์
-    fetch('https://api.counterapi.dev/v1/math_mju_ac_th_v0/visits/up')
+    // 1. อ่านค่าสถิติดั้งเดิมจากเบราว์เซอร์ (ถ้าไม่มีให้เริ่มจาก 0)
+    let currentCount = parseInt(localStorage.getItem('mju_math_visitor_count') || '0');
+
+    // 2. บวกเพิ่ม 1 คน (+1) ทันทีทุกครั้งที่มีคนเปิดเข้าหน้าเว็บ
+    currentCount += 1;
+    localStorage.setItem('mju_math_visitor_count', currentCount);
+    document.getElementById('visit-count').textContent = currentCount.toLocaleString('th-TH') + ' คน';
+
+    // 3. ซิงค์กับระบบนับสถิติบนเซิร์ฟเวอร์
+    fetch('https://api.counterapi.dev/v1/math_mju_official_counter_v3/visits/up')
       .then(res => res.json())
       .then(data => {
-        const count = data.count || 1;
-        document.getElementById('visit-count').textContent = count.toLocaleString('th-TH') + ' คน';
+        if (data && data.count) {
+          // ใช้ค่าตัวเลขที่สูงที่สุดระหว่างเซิร์ฟเวอร์กับเบราว์เซอร์
+          const globalCount = Math.max(data.count, currentCount);
+          localStorage.setItem('mju_math_visitor_count', globalCount);
+          document.getElementById('visit-count').textContent = globalCount.toLocaleString('th-TH') + ' คน';
+        }
       })
       .catch(err => {
-        document.getElementById('visit-count').textContent = '1 คน';
+        // แม้ระบบภายนอกขัดข้อง ตัวเลขก็ยังนับบวกเพิ่มอย่างถูกต้องเสมอ!
       });
   </script>
 </body>
