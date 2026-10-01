@@ -297,7 +297,7 @@
         <div class="stat-group">
             <span class="stat-icon">🟢</span>
             <span class="stat-title">วันนี้:</span>
-            <span class="stat-number" id="badge-today">2,158</span>
+            <span class="stat-number" id="badge-today">158</span>
         </div>
         <div class="divider"></div>
 
@@ -342,7 +342,7 @@
             <div class="summary-grid">
                 <div class="summary-card">
                     <div class="title">ผู้เข้าชมวันนี้</div>
-                    <div class="value" id="modal-today">2,158</div>
+                    <div class="value" id="modal-today">158</div>
                 </div>
                 <div class="summary-card">
                     <div class="title">ผู้เข้าชมเดือนนี้</div>
@@ -380,26 +380,28 @@
         // -------------------------------------------------------------
         // ระบบจำลองฐานข้อมูลสถิติที่บันทึกจริงผ่าน LocalStorage
         // -------------------------------------------------------------
-        const STORAGE_KEY = 'mju_math_visitor_analytics_v2158';
+        const STORAGE_KEY = 'mju_math_visitor_analytics_v3';
 
-        function resetStatsTo(targetNum = 2158) {
+        function resetStatsTo(dailyNum = 158, totalNum = 2158) {
             const today = new Date();
             const dateStr = today.toISOString().split('T')[0];
             const data = {
-                total: targetNum,
-                year: targetNum,
-                month: targetNum,
-                today: targetNum,
+                total: totalNum,
+                year: totalNum,
+                month: totalNum,
+                today: dailyNum,
                 lastDate: dateStr,
+                // ข้อมูลย้อนหลัง 7 วัน (ระดับหลักร้อย)
                 dailyHistory: [
-                    { date: '25 ก.ย.', visits: 1850 },
-                    { date: '26 ก.ย.', visits: 1940 },
-                    { date: '27 ก.ย.', visits: 1720 },
-                    { date: '28 ก.ย.', visits: 2010 },
-                    { date: '29 ก.ย.', visits: 2130 },
-                    { date: '30 ก.ย.', visits: 2090 },
-                    { date: '1 ต.ค. (วันนี้)', visits: targetNum }
+                    { date: '25 ก.ย.', visits: 142 },
+                    { date: '26 ก.ย.', visits: 168 },
+                    { date: '27 ก.ย.', visits: 135 },
+                    { date: '28 ก.ย.', visits: 174 },
+                    { date: '29 ก.ย.', visits: 189 },
+                    { date: '30 ก.ย.', visits: 162 },
+                    { date: '1 ต.ค. (วันนี้)', visits: dailyNum }
                 ],
+                // ข้อมูลรายเดือนปีปัจจุบัน
                 monthlyHistory: [
                     { month: 'ม.ค.', visits: 0 },
                     { month: 'ก.พ.', visits: 0 },
@@ -410,20 +412,55 @@
                     { month: 'ก.ค.', visits: 0 },
                     { month: 'ส.ค.', visits: 0 },
                     { month: 'ก.ย.', visits: 0 },
-                    { month: 'ต.ค.', visits: targetNum },
+                    { month: 'ต.ค.', visits: totalNum },
                     { month: 'พ.ย.', visits: 0 },
                     { month: 'ธ.ค.', visits: 0 }
                 ],
+                // สถิติตามช่วงเวลาใน 1 วัน รวมกันได้ 158
                 hourlyHistory: [
-                    { time: '00:00-04:00 (ดึก)', visits: 110 },
-                    { time: '04:00-08:00 (เช้ามืด)', visits: 198 },
-                    { time: '08:00-12:00 (เช้า)', visits: 740 },
-                    { time: '12:00-16:00 (บ่าย)', visits: 620 },
-                    { time: '16:00-20:00 (เย็น)', visits: 340 },
-                    { time: '20:00-24:00 (ค่ำ)', visits: 150 }
+                    { time: '00:00-04:00 (ดึก)', visits: 8 },
+                    { time: '04:00-08:00 (เช้ามืด)', visits: 15 },
+                    { time: '08:00-12:00 (เช้า)', visits: 52 },
+                    { time: '12:00-16:00 (บ่าย)', visits: 48 },
+                    { time: '16:00-20:00 (เย็น)', visits: 25 },
+                    { time: '20:00-24:00 (ค่ำ)', visits: 10 }
                 ]
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            return data;
+        }
+
+        function getAnalyticsData() {
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+
+            let data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            let isFirstInit = false;
+
+            // ถ้ายังไม่มีข้อมูล หรือเวอร์ชันใหม่ ให้เริ่มต้นสถิติใหม่
+            if (!data) {
+                isFirstInit = true;
+                data = resetStatsTo(158, 2158);
+            }
+
+            // ถ้าไม่ใช่รอบเปิดครั้งแรก ให้ตรวจสอบวันใหม่และนับเพิ่ม
+            if (!isFirstInit) {
+                if (data.lastDate !== dateStr) {
+                    data.today = 1;
+                    data.lastDate = dateStr;
+                } else {
+                    data.today += 1;
+                }
+                data.month += 1;
+                data.year += 1;
+                data.total += 1;
+
+                const lastDaily = data.dailyHistory[data.dailyHistory.length - 1];
+                if (lastDaily) lastDaily.visits = data.today;
+
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            }
+
             return data;
         }
 
