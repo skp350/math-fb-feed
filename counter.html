@@ -480,22 +480,20 @@
             }
 
             // 4. ตรวจสอบการรีเซ็ตเมื่อขึ้น "วันใหม่"
+            const SESSION_KEY = 'mju_math_visitor_session_time';
             if (data.lastDateStr !== dInfo.dateStr) {
                 const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
                 // เลื่อนวันในกราฟ 7 วันล่าสุด
                 if (data.dailyHistory && data.dailyHistory.length > 0) {
-                    // เอาคำว่า (วันนี้) ของวันเก่าออก
                     const lastItem = data.dailyHistory[data.dailyHistory.length - 1];
                     if (lastItem) {
                         lastItem.date = lastItem.date.replace(' (วันนี้)', '');
                     }
 
-                    // เพิ่มวันใหม่เข้าท้ายตาราง
                     const todayLabel = `${dInfo.date} ${thaiMonths[dInfo.month]} (วันนี้)`;
                     data.dailyHistory.push({ date: todayLabel, visits: 0 });
 
-                    // รักษารายการไว้ที่ 7 วัน
                     while (data.dailyHistory.length > 7) {
                         data.dailyHistory.shift();
                     }
@@ -510,37 +508,55 @@
                 if (data.hourlyHistory) {
                     data.hourlyHistory.forEach(h => h.visits = 0);
                 }
+
+                // ล้าง session เดิมเพื่อให้วันใหม่นับเครื่องนี้ได้ทันที
+                localStorage.removeItem(SESSION_KEY);
             }
 
-            // 5. นับเพิ่มคนเข้าชมในรอบนี้ (+1)
-            data.today += 1;
-            data.month += 1;
-            data.year += 1;
-            data.total += 1;
+            // 5. ระบบกรองเครื่องซ้ำ (Session Cooldown Guard - 30 นาที)
+            // ถ้าคอม 1 เครื่องเปิดดูหลายๆ หน้า หรือรีเฟรชภายใน 30 นาที จะไม่นับซ้ำ
+            const COOLDOWN_MINUTES = 30;
+            const nowMs = dInfo.now.getTime();
+            const lastVisitMs = localStorage.getItem(SESSION_KEY);
+            const cooldownMs = COOLDOWN_MINUTES * 60 * 1000;
 
-            // อัปเดตรายการวันนี้ใน dailyHistory
-            if (data.dailyHistory && data.dailyHistory.length > 0) {
-                data.dailyHistory[data.dailyHistory.length - 1].visits = data.today;
+            let isNewVisitor = false;
+            if (!lastVisitMs || (nowMs - parseInt(lastVisitMs, 10)) > cooldownMs) {
+                isNewVisitor = true;
+                localStorage.setItem(SESSION_KEY, nowMs.toString());
             }
 
-            // อัปเดตรายการเดือนนี้ใน monthlyHistory
-            if (data.monthlyHistory && data.monthlyHistory[dInfo.month]) {
-                data.monthlyHistory[dInfo.month].visits = data.month;
-            }
+            // นับเพิ่มเฉพาะเมื่อเป็นผู้เข้าชมใหม่ หรือกลับมาใหม่หลังจากพ้น 30 นาที
+            if (isNewVisitor) {
+                data.today += 1;
+                data.month += 1;
+                data.year += 1;
+                data.total += 1;
 
-            // อัปเดตช่วงเวลาของวันนี้
-            if (data.hourlyHistory) {
-                const hour = dInfo.now.getHours();
-                let slotIdx = 0;
-                if (hour >= 0 && hour < 4) slotIdx = 0;
-                else if (hour >= 4 && hour < 8) slotIdx = 1;
-                else if (hour >= 8 && hour < 12) slotIdx = 2;
-                else if (hour >= 12 && hour < 16) slotIdx = 3;
-                else if (hour >= 16 && hour < 20) slotIdx = 4;
-                else slotIdx = 5;
+                // อัปเดตรายการวันนี้ใน dailyHistory
+                if (data.dailyHistory && data.dailyHistory.length > 0) {
+                    data.dailyHistory[data.dailyHistory.length - 1].visits = data.today;
+                }
 
-                if (data.hourlyHistory[slotIdx]) {
-                    data.hourlyHistory[slotIdx].visits += 1;
+                // อัปเดตรายการเดือนนี้ใน monthlyHistory
+                if (data.monthlyHistory && data.monthlyHistory[dInfo.month]) {
+                    data.monthlyHistory[dInfo.month].visits = data.month;
+                }
+
+                // อัปเดตช่วงเวลาของวันนี้
+                if (data.hourlyHistory) {
+                    const hour = dInfo.now.getHours();
+                    let slotIdx = 0;
+                    if (hour >= 0 && hour < 4) slotIdx = 0;
+                    else if (hour >= 4 && hour < 8) slotIdx = 1;
+                    else if (hour >= 8 && hour < 12) slotIdx = 2;
+                    else if (hour >= 12 && hour < 16) slotIdx = 3;
+                    else if (hour >= 16 && hour < 20) slotIdx = 4;
+                    else slotIdx = 5;
+
+                    if (data.hourlyHistory[slotIdx]) {
+                        data.hourlyHistory[slotIdx].visits += 1;
+                    }
                 }
             }
 
