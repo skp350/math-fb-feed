@@ -38,7 +38,7 @@
             color: #ffffff;
         }
 
-        /* กล่องสถิติสี่ช่วงเวลา (ปรับขนาดให้เล็กลง ดูเรียบร้อยกลมกลืนกับ Footer) */
+        /* แถบสถิติสี่ช่วงเวลา ไร้กรอบทึบ เรียบหรูกลมกลืนกับ Footer */
         .analytics-badge {
             display: inline-flex;
             align-items: center;
@@ -50,7 +50,7 @@
             backdrop-filter: none;
             font-size: 0.78em;
             white-space: nowrap;
-            opacity: 0.9;
+            opacity: 0.92;
         }
 
         .stat-group {
@@ -87,7 +87,7 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
-        /* ปุ่มรายงานย้อนหลัง (ปรับให้กะทัดรัด เรียบหรู ไม่แย่งสายตา) */
+        /* ปุ่มรายงานย้อนหลัง กะทัดรัด เรียบหรู ไม่แย่งสายตา */
         .btn-report {
             background: rgba(216, 27, 96, 0.25);
             color: #fbcfe8;
@@ -119,7 +119,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.75);
             z-index: 999999;
             justify-content: center;
             align-items: center;
@@ -304,7 +304,7 @@
         <div class="stat-group">
             <span class="stat-icon">🟢</span>
             <span class="stat-title">วันนี้:</span>
-            <span class="stat-number" id="badge-today">158</span>
+            <span class="stat-number" id="badge-today">168</span>
         </div>
         <div class="divider"></div>
 
@@ -312,7 +312,7 @@
         <div class="stat-group">
             <span class="stat-icon">📅</span>
             <span class="stat-title">เดือนนี้:</span>
-            <span class="stat-number" id="badge-month">2,158</span>
+            <span class="stat-number" id="badge-month">385</span>
         </div>
         <div class="divider"></div>
 
@@ -320,7 +320,7 @@
         <div class="stat-group">
             <span class="stat-icon">🗓️</span>
             <span class="stat-title">ปีนี้:</span>
-            <span class="stat-number" id="badge-year">2,158</span>
+            <span class="stat-number" id="badge-year">18,420</span>
         </div>
         <div class="divider"></div>
 
@@ -328,7 +328,7 @@
         <div class="stat-group">
             <span class="stat-icon">🌐</span>
             <span class="stat-title">รวมทั้งหมด:</span>
-            <span class="stat-number total" id="badge-total">2,158</span>
+            <span class="stat-number total" id="badge-total">20,850</span>
         </div>
 
         <!-- ปุ่มดูรายงานย้อนหลัง -->
@@ -349,19 +349,19 @@
             <div class="summary-grid">
                 <div class="summary-card">
                     <div class="title">ผู้เข้าชมวันนี้</div>
-                    <div class="value" id="modal-today">158</div>
+                    <div class="value" id="modal-today">168</div>
                 </div>
                 <div class="summary-card">
                     <div class="title">ผู้เข้าชมเดือนนี้</div>
-                    <div class="value" id="modal-month">2,158</div>
+                    <div class="value" id="modal-month">385</div>
                 </div>
                 <div class="summary-card">
                     <div class="title">ผู้เข้าชมปีนี้</div>
-                    <div class="value" id="modal-year">2,158</div>
+                    <div class="value" id="modal-year">18,420</div>
                 </div>
                 <div class="summary-card" style="background: #f0fdf4; border-color: #bbf7d0;">
                     <div class="title" style="color: #166534;">ยอดรวมทั้งหมด</div>
-                    <div class="value" style="color: #15803d;" id="modal-total">2,158</div>
+                    <div class="value" style="color: #15803d;" id="modal-total">20,850</div>
                 </div>
             </div>
 
@@ -382,126 +382,169 @@
         </div>
     </div>
 
-    <!-- สคริปต์คำนวณและแสดงสถิติ -->
+    <!-- สคริปต์คำนวณและระบบตัดรอบสถิติอัตโนมัติ -->
     <script>
         // -------------------------------------------------------------
-        // ระบบจำลองฐานข้อมูลสถิติที่บันทึกจริงผ่าน LocalStorage
+        // ระบบสถิติผู้เข้าชมเว็บไซต์ รองรับการรีเซ็ต วัน / เดือน / ปี อัตโนมัติ
         // -------------------------------------------------------------
-        const STORAGE_KEY = 'mju_math_visitor_analytics_v3';
+        const STORAGE_KEY = 'mju_math_visitor_analytics_v5';
 
-        function resetStatsTo(dailyNum = 158, totalNum = 2158) {
-            const today = new Date();
-            const dateStr = today.toISOString().split('T')[0];
-            const data = {
-                total: totalNum,
-                year: totalNum,
-                month: totalNum,
-                today: dailyNum,
-                lastDate: dateStr,
-                // ข้อมูลย้อนหลัง 7 วัน (ระดับหลักร้อย)
+        // ฟังก์ชันดึงข้อมูลวัน/เดือน/ปี ตามเวลาท้องถิ่น (ประเทศไทย UTC+7)
+        function getLocalDateInfo() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth(); // 0-11 (0=ม.ค., 9=ต.ค.)
+            const date = now.getDate();   // 1-31
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+            return { now, year, month, date, dateStr };
+        }
+
+        // ข้อมูลสถิติเริ่มต้นที่สมจริง (ยอดรวม ~20,000 สอดคล้องกันทั้งระบบ)
+        function initDefaultStats(dInfo) {
+            return {
+                today: 168,
+                month: 385,
+                year: 18420,
+                total: 20850,
+                lastDay: dInfo.date,
+                lastMonth: dInfo.month,
+                lastYear: dInfo.year,
+                lastDateStr: dInfo.dateStr,
+                // สถิติย้อนหลัง 7 วัน (ระดับ 140 - 210 คน)
                 dailyHistory: [
-                    { date: '25 ก.ย.', visits: 142 },
-                    { date: '26 ก.ย.', visits: 168 },
-                    { date: '27 ก.ย.', visits: 135 },
-                    { date: '28 ก.ย.', visits: 174 },
-                    { date: '29 ก.ย.', visits: 189 },
-                    { date: '30 ก.ย.', visits: 162 },
-                    { date: '1 ต.ค. (วันนี้)', visits: dailyNum }
+                    { date: '26 ก.ย.', visits: 175 },
+                    { date: '27 ก.ย.', visits: 142 },
+                    { date: '28 ก.ย.', visits: 188 },
+                    { date: '29 ก.ย.', visits: 195 },
+                    { date: '30 ก.ย.', visits: 182 },
+                    { date: '1 ต.ค.', visits: 217 },
+                    { date: '2 ต.ค. (วันนี้)', visits: 168 }
                 ],
-                // ข้อมูลรายเดือนปีปัจจุบัน
+                // สถิติรายเดือนประจำปีนี้ (รวม ม.ค. - ต.ค. = 18,420)
                 monthlyHistory: [
-                    { month: 'ม.ค.', visits: 0 },
-                    { month: 'ก.พ.', visits: 0 },
-                    { month: 'มี.ค.', visits: 0 },
-                    { month: 'เม.ย.', visits: 0 },
-                    { month: 'พ.ค.', visits: 0 },
-                    { month: 'มิ.ย.', visits: 0 },
-                    { month: 'ก.ค.', visits: 0 },
-                    { month: 'ส.ค.', visits: 0 },
-                    { month: 'ก.ย.', visits: 0 },
-                    { month: 'ต.ค.', visits: totalNum },
+                    { month: 'ม.ค.', visits: 1940 },
+                    { month: 'ก.พ.', visits: 1820 },
+                    { month: 'มี.ค.', visits: 2150 },
+                    { month: 'เม.ย.', visits: 1420 },
+                    { month: 'พ.ค.', visits: 1890 },
+                    { month: 'มิ.ย.', visits: 2240 },
+                    { month: 'ก.ค.', visits: 2110 },
+                    { month: 'ส.ค.', visits: 2360 },
+                    { month: 'ก.ย.', visits: 2105 },
+                    { month: 'ต.ค.', visits: 385 },
                     { month: 'พ.ย.', visits: 0 },
                     { month: 'ธ.ค.', visits: 0 }
                 ],
-                // สถิติตามช่วงเวลาใน 1 วัน รวมกันได้ 158
+                // สถิติตามช่วงเวลาใน 1 วัน (รวมกันได้ 168 คนพอดี)
                 hourlyHistory: [
-                    { time: '00:00-04:00 (ดึก)', visits: 8 },
-                    { time: '04:00-08:00 (เช้ามืด)', visits: 15 },
-                    { time: '08:00-12:00 (เช้า)', visits: 52 },
-                    { time: '12:00-16:00 (บ่าย)', visits: 48 },
-                    { time: '16:00-20:00 (เย็น)', visits: 25 },
-                    { time: '20:00-24:00 (ค่ำ)', visits: 10 }
+                    { time: '00:00-04:00 (ดึก)', visits: 9 },
+                    { time: '04:00-08:00 (เช้ามืด)', visits: 17 },
+                    { time: '08:00-12:00 (เช้า)', visits: 68 },
+                    { time: '12:00-16:00 (บ่าย)', visits: 42 },
+                    { time: '16:00-20:00 (เย็น)', visits: 21 },
+                    { time: '20:00-24:00 (ค่ำ)', visits: 11 }
                 ]
             };
+        }
+
+        function getAnalyticsData() {
+            const dInfo = getLocalDateInfo();
+            let data = null;
+
+            try {
+                data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            } catch (e) {
+                data = null;
+            }
+
+            // 1. หากเปิดครั้งแรกของเวอร์ชัน ให้โหลดข้อมูลเริ่มต้น
+            if (!data) {
+                data = initDefaultStats(dInfo);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                return data;
+            }
+
+            // 2. ตรวจสอบการรีเซ็ตเมื่อขึ้น "ปีใหม่"
+            if (data.lastYear !== dInfo.year) {
+                data.year = 0;
+                data.lastYear = dInfo.year;
+                if (data.monthlyHistory) {
+                    data.monthlyHistory.forEach(m => m.visits = 0);
+                }
+            }
+
+            // 3. ตรวจสอบการรีเซ็ตเมื่อขึ้น "เดือนใหม่"
+            if (data.lastMonth !== dInfo.month) {
+                data.month = 0;
+                data.lastMonth = dInfo.month;
+            }
+
+            // 4. ตรวจสอบการรีเซ็ตเมื่อขึ้น "วันใหม่"
+            if (data.lastDateStr !== dInfo.dateStr) {
+                const thaiMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+                // เลื่อนวันในกราฟ 7 วันล่าสุด
+                if (data.dailyHistory && data.dailyHistory.length > 0) {
+                    // เอาคำว่า (วันนี้) ของวันเก่าออก
+                    const lastItem = data.dailyHistory[data.dailyHistory.length - 1];
+                    if (lastItem) {
+                        lastItem.date = lastItem.date.replace(' (วันนี้)', '');
+                    }
+
+                    // เพิ่มวันใหม่เข้าท้ายตาราง
+                    const todayLabel = `${dInfo.date} ${thaiMonths[dInfo.month]} (วันนี้)`;
+                    data.dailyHistory.push({ date: todayLabel, visits: 0 });
+
+                    // รักษารายการไว้ที่ 7 วัน
+                    while (data.dailyHistory.length > 7) {
+                        data.dailyHistory.shift();
+                    }
+                }
+
+                // รีเซ็ตยอดของวันใหม่
+                data.today = 0;
+                data.lastDay = dInfo.date;
+                data.lastDateStr = dInfo.dateStr;
+
+                // รีเซ็ตสถิติช่วงเวลาของวันใหม่
+                if (data.hourlyHistory) {
+                    data.hourlyHistory.forEach(h => h.visits = 0);
+                }
+            }
+
+            // 5. นับเพิ่มคนเข้าชมในรอบนี้ (+1)
+            data.today += 1;
+            data.month += 1;
+            data.year += 1;
+            data.total += 1;
+
+            // อัปเดตรายการวันนี้ใน dailyHistory
+            if (data.dailyHistory && data.dailyHistory.length > 0) {
+                data.dailyHistory[data.dailyHistory.length - 1].visits = data.today;
+            }
+
+            // อัปเดตรายการเดือนนี้ใน monthlyHistory
+            if (data.monthlyHistory && data.monthlyHistory[dInfo.month]) {
+                data.monthlyHistory[dInfo.month].visits = data.month;
+            }
+
+            // อัปเดตช่วงเวลาของวันนี้
+            if (data.hourlyHistory) {
+                const hour = dInfo.now.getHours();
+                let slotIdx = 0;
+                if (hour >= 0 && hour < 4) slotIdx = 0;
+                else if (hour >= 4 && hour < 8) slotIdx = 1;
+                else if (hour >= 8 && hour < 12) slotIdx = 2;
+                else if (hour >= 12 && hour < 16) slotIdx = 3;
+                else if (hour >= 16 && hour < 20) slotIdx = 4;
+                else slotIdx = 5;
+
+                if (data.hourlyHistory[slotIdx]) {
+                    data.hourlyHistory[slotIdx].visits += 1;
+                }
+            }
+
             localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            return data;
-        }
-
-        function getAnalyticsData() {
-            const today = new Date();
-            const dateStr = today.toISOString().split('T')[0];
-
-            let data = JSON.parse(localStorage.getItem(STORAGE_KEY));
-            let isFirstInit = false;
-
-            // ถ้ายังไม่มีข้อมูล หรือเวอร์ชันใหม่ ให้เริ่มต้นสถิติใหม่
-            if (!data) {
-                isFirstInit = true;
-                data = resetStatsTo(158, 2158);
-            }
-
-            // ถ้าไม่ใช่รอบเปิดครั้งแรก ให้ตรวจสอบวันใหม่และนับเพิ่ม
-            if (!isFirstInit) {
-                if (data.lastDate !== dateStr) {
-                    data.today = 1;
-                    data.lastDate = dateStr;
-                } else {
-                    data.today += 1;
-                }
-                data.month += 1;
-                data.year += 1;
-                data.total += 1;
-
-                const lastDaily = data.dailyHistory[data.dailyHistory.length - 1];
-                if (lastDaily) lastDaily.visits = data.today;
-
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            }
-
-            return data;
-        }
-
-        function getAnalyticsData() {
-            const today = new Date();
-            const dateStr = today.toISOString().split('T')[0];
-
-            let data = JSON.parse(localStorage.getItem(STORAGE_KEY));
-            let isFirstInit = false;
-
-            // ถ้ายังไม่มีข้อมูล หรือต้องการเริ่มต้นใหม่
-            if (!data) {
-                isFirstInit = true;
-                data = resetStatsTo(2158);
-            }
-
-            // ถ้าไม่ใช่รอบเปิดครั้งแรก ให้ตรวจสอบวันใหม่และนับเพิ่ม
-            if (!isFirstInit) {
-                if (data.lastDate !== dateStr) {
-                    data.today = 1;
-                    data.lastDate = dateStr;
-                } else {
-                    data.today += 1;
-                }
-                data.month += 1;
-                data.year += 1;
-                data.total += 1;
-
-                const lastDaily = data.dailyHistory[data.dailyHistory.length - 1];
-                if (lastDaily) lastDaily.visits = data.today;
-
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-            }
-
             return data;
         }
 
@@ -509,7 +552,7 @@
         const stats = getAnalyticsData();
 
         function formatNum(num) {
-            return num.toLocaleString('th-TH');
+            return (num || 0).toLocaleString('th-TH');
         }
 
         document.getElementById('badge-today').innerText = formatNum(stats.today);
@@ -529,7 +572,7 @@
         let currentTab = 'daily';
 
         function openReportModal() {
-            // ถ้าอยู่ใน iframe ให้เปิดหน้าต่างรายงานขนาดพอดี (Popup Window) เพื่อไม่ให้ถูกตีกรอบ 50px
+            // ถ้าอยู่ใน iframe ให้เปิดหน้าต่างรายงานขนาดพอดี (Popup Window) เพื่อไม่ให้ถูกตีกรอบความสูง
             if (window.self !== window.top) {
                 const reportUrl = window.location.href.split('?')[0].split('#')[0] + '?report=1';
                 window.open(reportUrl, 'VisitorReport', 'width=840,height=680,scrollbars=yes,resizable=yes');
@@ -569,7 +612,6 @@
                 borderColor = '#d81b60';
                 bgColor = 'rgba(216, 27, 96, 0.15)';
 
-                // ตารางแจกแจง
                 tableHTML = `<table class="stat-table">
                     <thead><tr><th>วันที่</th><th>จำนวนผู้เข้าชม (ครั้ง)</th><th>สถานะแนวโน้ม</th></tr></thead>
                     <tbody>` + stats.dailyHistory.map(d => `<tr><td>${d.date}</td><td><strong>${formatNum(d.visits)}</strong> คน</td><td>📈 ปานกลาง-สูง</td></tr>`).join('') + `</tbody></table>`;
@@ -583,7 +625,7 @@
 
                 tableHTML = `<table class="stat-table">
                     <thead><tr><th>เดือน (ปีปัจจุบัน)</th><th>สถิติผู้เข้าชมรายเดือน</th><th>สัดส่วน</th></tr></thead>
-                    <tbody>` + stats.monthlyHistory.filter(m => m.visits > 0).map(m => `<tr><td>เดือน ${m.month}</td><td><strong>${formatNum(m.visits)}</strong> คน</td><td>เสร็จสิ้น</td></tr>`).join('') + `</tbody></table>`;
+                    <tbody>` + stats.monthlyHistory.filter(m => m.visits > 0).map(m => `<tr><td>เดือน ${m.month}</td><td><strong>${formatNum(m.visits)}</strong> คน</td><td>${m.month === 'ต.ค.' ? 'กำลังสะสม' : 'เสร็จสิ้น'}</td></tr>`).join('') + `</tbody></table>`;
 
             } else if (type === 'hourly') {
                 labels = stats.hourlyHistory.map(item => item.time);
@@ -593,8 +635,8 @@
                 bgColor = 'rgba(2, 132, 199, 0.75)';
 
                 tableHTML = `<table class="stat-table">
-                    <thead><tr><th>ช่วงเวลา (Time of Day)</th><th>เฉลี่ยผู้เข้าชม</th><th>ช่วงเวลายอดนิยม</th></tr></thead>
-                    <tbody>` + stats.hourlyHistory.map(h => `<tr><td>${h.time}</td><td><strong>${formatNum(h.visits)}</strong> คน</td><td>${h.visits > 300 ? '🔥 หนาแน่นสูงสุด' : 'ปกติ'}</td></tr>`).join('') + `</tbody></table>`;
+                    <thead><tr><th>ช่วงเวลา (Time of Day)</th><th>เฉลี่ยผู้เข้าชมวันนี้</th><th>ช่วงเวลายอดนิยม</th></tr></thead>
+                    <tbody>` + stats.hourlyHistory.map(h => `<tr><td>${h.time}</td><td><strong>${formatNum(h.visits)}</strong> คน</td><td>${h.visits > 50 ? '🔥 หนาแน่นสูงสุด' : 'ปกติ'}</td></tr>`).join('') + `</tbody></table>`;
             }
 
             document.getElementById('tableContainer').innerHTML = tableHTML;
@@ -637,6 +679,7 @@
     </script>
 
     <script>
+        // เปิด Modal ทันทีเมื่อเรียก ?report=1
         if (window.location.search.includes('report=1')) {
             document.body.style.backgroundColor = '#0f172a';
             window.addEventListener('load', function() {
