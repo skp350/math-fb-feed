@@ -9,7 +9,8 @@
     <!-- Google Fonts: Sarabun -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
 
     <!-- Chart.js สำหรับการแสดงผลกราฟสถิติย้อนหลัง -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -21,7 +22,8 @@
             padding: 0;
         }
 
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
             width: 100%;
@@ -147,6 +149,7 @@
                 opacity: 0;
                 transform: scale(0.96) translateY(10px);
             }
+
             to {
                 opacity: 1;
                 transform: scale(1) translateY(0);
@@ -287,9 +290,11 @@
                 border-radius: 16px;
                 justify-content: center;
             }
+
             .summary-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+
             .divider {
                 display: none;
             }
@@ -328,7 +333,6 @@
             <span class="stat-number total" id="badge-total">0</span>
         </div>
 
-        <!-- เปลี่ยนจาก button เป็น a tag เพื่อแก้ปัญหา iframe โดนบล็อก Popup -->
         <a href="?report=1" target="_blank" class="btn-report" onclick="openReportModal(event)">
             <span>📊</span> รายงานสถิติ
         </a>
@@ -381,7 +385,7 @@
 
     <script>
         // -------------------------------------------------------------
-        // ระบบจำลองสถิติผู้เข้าชมแบบเสมือนจริง (เนียนตาและรีเซ็ตตามเวลาจริง 100%)
+        // ระบบจำลองสถิติผู้เข้าชมแบบเสมือนจริง (แสดงผลเท่ากันทุกเครื่อง 100%)
         // -------------------------------------------------------------
         function getAnalyticsData() {
             const now = new Date();
@@ -389,12 +393,12 @@
             const currentMonth = now.getMonth();
             const currentDate = now.getDate();
 
-            const monthNames = ["ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
+            const monthNames = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
             let monthlyHistory = monthNames.map(m => ({ month: m, visits: 0 }));
             let dailyHistory = [];
 
             // ตั้งค่ายอดรวมตั้งต้น เพื่อให้ยอดรวมถึงวันนี้อยู่ที่ประมาณ 21,000
-            let total = 7500; 
+            let total = 7500;
             let year = 0;
             let month = 0;
 
@@ -403,31 +407,20 @@
                 let daysInMonth = (m === currentMonth) ? currentDate : new Date(currentYear, m + 1, 0).getDate();
                 for (let d = 1; d <= daysInMonth; d++) {
                     let isToday = (m === currentMonth && d === currentDate);
-                    
+
                     // สร้างตัวเลขที่คงที่สำหรับแต่ละวัน (สุ่มเนียนๆ ประมาณ 30-70 คนต่อวัน)
                     let seed = currentYear * 1000 + m * 50 + d;
                     let rand = Math.abs(Math.sin(seed));
-                    let dailyTarget = Math.floor(rand * 40) + 30; 
-                    
+                    let dailyTarget = Math.floor(rand * 40) + 30;
+
                     let visits = dailyTarget;
-                    
-                    // หากเป็น "วันนี้" ให้ตัวเลขค่อยๆ วิ่งขึ้นตามเวลาจริงของวัน
+
+                    // หากเป็น "วันนี้" ให้ตัวเลขค่อยๆ วิ่งขึ้นตามเวลาจริงของวัน (ตัดระบบบวกตอนรีเฟรชออก เพื่อให้ติด Cooldown ธรรมชาติ)
                     if (isToday) {
                         let minutesPassed = now.getHours() * 60 + now.getMinutes();
-                        visits = Math.floor((minutesPassed / (24 * 60)) * dailyTarget);
-                        
-                        // ลองนับยอดจาก sessionStorage เพื่อบวกเพิ่มทุกครั้งที่คนเปิดหน้านี้ (นับแบบ Session)
-                        // ใช้ try-catch เพื่อป้องกัน iframe โดนบล็อก Storage
-                        try {
-                            let sessionVisits = parseInt(sessionStorage.getItem('mju_session') || '0');
-                            sessionVisits++;
-                            sessionStorage.setItem('mju_session', sessionVisits);
-                            visits += sessionVisits;
-                        } catch(e) {
-                            visits += 1;
-                        }
+                        visits = Math.max(1, Math.floor((minutesPassed / (24 * 60)) * dailyTarget));
                     }
-                    
+
                     year += visits;
                     if (m === currentMonth) month += visits;
                     monthlyHistory[m].visits += visits;
@@ -441,18 +434,16 @@
                 let seed = d.getFullYear() * 1000 + d.getMonth() * 50 + d.getDate();
                 let rand = Math.abs(Math.sin(seed));
                 let dailyTarget = Math.floor(rand * 40) + 30;
-                
+
                 let visits = dailyTarget;
                 let label = `${d.getDate()} ${monthNames[d.getMonth()]}`;
-                
+
                 if (i === 0) {
                     label += " (วันนี้)";
                     let minutesPassed = d.getHours() * 60 + d.getMinutes();
-                    let sessionVisits = 1;
-                    try { sessionVisits = parseInt(sessionStorage.getItem('mju_session') || '1'); } catch(e){}
-                    visits = Math.floor((minutesPassed / (24 * 60)) * dailyTarget) + sessionVisits;
+                    visits = Math.max(1, Math.floor((minutesPassed / (24 * 60)) * dailyTarget));
                 }
-                
+
                 dailyHistory.push({ date: label, visits: visits });
             }
 
@@ -604,7 +595,7 @@
             document.body.style.backgroundColor = '#0f172a';
             document.getElementById('mainBadge').style.display = 'none'; // ซ่อนแถบหลัก
 
-            window.addEventListener('load', function() {
+            window.addEventListener('load', function () {
                 const reportModal = document.getElementById('reportModal');
                 reportModal.style.display = 'flex';
                 reportModal.style.background = 'transparent'; // ไม่ต้องมีพื้นหลังมืดซ้อน
@@ -616,7 +607,7 @@
                 modalBox.style.height = '100vh';
                 modalBox.style.maxHeight = '100vh';
                 modalBox.style.borderRadius = '0';
-                
+
                 renderReportChart('daily');
             });
         }
