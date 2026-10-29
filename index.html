@@ -23,7 +23,6 @@
             overflow-x: hidden;
         }
 
-        /* เลย์เอาต์ 6 ข่าว */
         .feed-container-6 {
             display: flex;
             flex-wrap: wrap;
@@ -152,7 +151,6 @@
         const fbPageUrl = 'https://www.facebook.com/MathMaeJo';
         const defaultFallbackImg = 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=600&auto=format&fit=crop&q=80';
 
-        // ข้อมูลโพสต์ ดึงรูปจากโฟลเดอร์ images/ ที่ดาวน์โหลดเก็บไว้ใน Server เสมอ (ป้องกัน RSS หมดอายุ 100%)
         const fallbackPosts = [
             {
                 title: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦",
@@ -207,7 +205,9 @@
 
             posts.forEach((post, index) => {
                 const dateStr = post.isYoutube ? 'วิดีโอแนะนำ' : (post.pubDate ? new Date(post.pubDate).toLocaleDateString('th-TH', { month: 'short', day: 'numeric' }) : 'ล่าสุด');
-                const localFolderImg = post.isYoutube ? post.thumbnail : (post.thumbnail || `images/fb${index + 1}.jpg`);
+                // บังคับโหลดรูปใหม่เมื่อวันที่โพสต์เปลี่ยน (กันติด Cache รูปเก่า)
+                const cacheBuster = post.pubDate ? '?v=' + encodeURIComponent(post.pubDate) : '';
+                const localFolderImg = post.isYoutube ? post.thumbnail : ((post.thumbnail || `images/fb${index + 1}.jpg`) + cacheBuster);
 
                 container.innerHTML += `
             <a href="${post.link || fbPageUrl}" target="_blank" class="news-card-6 ${post.isYoutube ? 'youtube-card' : ''}">
@@ -232,15 +232,11 @@
             });
         }
 
-        // แสดงผลทันทีจากโฟลเดอร์ images/ และอัปเดตข้อความหากมีไฟล์ posts.json ที่บอทเซฟไว้
-        renderFeeds(fallbackPosts);
-
+        // โหลดจาก posts.json ที่บอทเซฟไว้ทันที
         fetch('posts.json?t=' + Date.now())
-            .then(res => res.ok ? res.json() : null)
-            .then(data => {
-                if (data && data.length > 0) renderFeeds(data);
-            })
-            .catch(() => { });
+            .then(res => res.ok ? res.json() : fallbackPosts)
+            .then(data => renderFeeds(data && data.length > 0 ? data : fallbackPosts))
+            .catch(() => renderFeeds(fallbackPosts));
     </script>
 </body>
 
