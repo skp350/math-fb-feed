@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
     <title>Facebook 6 Feeds - สาขาวิชาคณิตศาสตร์ ม.แม่โจ้</title>
 
     <style>
@@ -203,17 +204,16 @@
             const container = document.getElementById('feed-container');
             container.innerHTML = '';
 
-            posts.forEach((post, index) => {
+            posts.forEach((post) => {
                 const dateStr = post.isYoutube ? 'วิดีโอแนะนำ' : (post.pubDate ? new Date(post.pubDate).toLocaleDateString('th-TH', { month: 'short', day: 'numeric' }) : 'ล่าสุด');
-                // บังคับโหลดรูปใหม่เมื่อวันที่โพสต์เปลี่ยน (กันติด Cache รูปเก่า)
-                const cacheBuster = post.pubDate ? '?v=' + encodeURIComponent(post.pubDate) : '';
-                const localFolderImg = post.isYoutube ? post.thumbnail : ((post.thumbnail || `images/fb${index + 1}.jpg`) + cacheBuster);
+                const imgSrc = post.thumbnail || defaultFallbackImg;
+                const liveFallback = post.liveImgUrl || defaultFallbackImg;
 
                 container.innerHTML += `
             <a href="${post.link || fbPageUrl}" target="_blank" class="news-card-6 ${post.isYoutube ? 'youtube-card' : ''}">
               <div class="card-img-wrapper">
-                <img class="card-img" src="${localFolderImg}" alt="Card Image"
-                     onerror="this.onerror=null;this.src='${defaultFallbackImg}';">
+                <img class="card-img" src="${imgSrc}" referrerpolicy="no-referrer" alt="Card Image"
+                     onerror="if(!this.dataset.triedLive && '${liveFallback}' !== '${defaultFallbackImg}'){this.dataset.triedLive='1';this.src='${liveFallback}';}else{this.onerror=null;this.src='${defaultFallbackImg}';}">
                 ${post.isYoutube ? '<div class="play-btn">▶</div>' : ''}
               </div>
               <div class="card-content">
@@ -232,7 +232,6 @@
             });
         }
 
-        // โหลดจาก posts.json ที่บอทเซฟไว้ทันที
         fetch('posts.json?t=' + Date.now())
             .then(res => res.ok ? res.json() : fallbackPosts)
             .then(data => renderFeeds(data && data.length > 0 ? data : fallbackPosts))
