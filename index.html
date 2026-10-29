@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ป้องกัน Facebook บล็อกการดึงรูปข้ามโดเมน -->
+    <meta name="referrer" content="no-referrer">
     <title>Facebook 6 Feeds - สาขาวิชาคณิตศาสตร์ ม.แม่โจ้</title>
 
     <style>
@@ -153,7 +155,7 @@
         const myRealRssUrl = 'https://fetchrss.com/feed/1x2Ksn3K62qo1x2KsG7fR4v4.rss';
         const defaultFallbackImg = 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=600&auto=format&fit=crop&q=80';
 
-        // ข้อมูลโพสต์เริ่มต้นจาก XML ล่าสุด (แสดงผลทันทีใน 0 วินาที ไม่ต้องรอโหลด)
+        // แนะนำ: หากเซฟรูปจาก Facebook มาอัปโหลดขึ้น GitHub โฟลเดอร์เดียวกัน สามารถเปลี่ยน thumbnail เป็น "fb1.jpg" .. "fb5.jpg" ได้เลย รูปจะไม่หมดอายุอีกต่อไปครับ
         const initialPosts = [
             {
                 title: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦",
@@ -228,12 +230,22 @@
                     const imgMatch = post.description.match(/src=["'](.*?)["']/);
                     if (imgMatch) imgUrl = imgMatch[1].replace(/&amp;/g, '&');
                 }
-                if (!imgUrl) imgUrl = defaultFallbackImg;
+                if (imgUrl) {
+                    imgUrl = imgUrl.replace(/&amp;/g, '&');
+                } else {
+                    imgUrl = defaultFallbackImg;
+                }
+
+                // ตัวสำรองผ่าน Image Proxy หากลิงก์ตรงของ Facebook บล็อก
+                const proxyImgUrl = (!post.isYoutube && imgUrl.startsWith('http'))
+                    ? 'https://wsrv.nl/?url=' + encodeURIComponent(imgUrl)
+                    : defaultFallbackImg;
 
                 container.innerHTML += `
             <a href="${post.link || fbPageUrl}" target="_blank" class="news-card-6 ${post.isYoutube ? 'youtube-card' : ''}">
               <div class="card-img-wrapper">
-                <img class="card-img" src="${imgUrl}" alt="Card Image" onerror="this.onerror=null;this.src='${defaultFallbackImg}';">
+                <img class="card-img" src="${imgUrl}" referrerpolicy="no-referrer" alt="Card Image"
+                     onerror="if(!this.dataset.triedProxy){this.dataset.triedProxy='1';this.src='${proxyImgUrl}';}else{this.onerror=null;this.src='${defaultFallbackImg}';}">
                 ${post.isYoutube ? '<div class="play-btn">▶</div>' : ''}
               </div>
               <div class="card-content">
@@ -252,7 +264,6 @@
             });
         }
 
-        // ฟังก์ชันดึงข้อมูลแบบจำกัดเวลาไม่เกิน 3.5 วินาที (กันค้าง)
         function fetchWithTimeout(url, timeout = 3500) {
             return Promise.race([
                 fetch(url),
@@ -275,24 +286,31 @@
             });
         }
 
-        // 1. แสดงผลทันทีที่เปิดหน้าเว็บ ไม่ต้องรอโหลด!
         renderFeeds(initialPosts);
 
-        // 2. แอบเช็คข้อมูลสดเบื้องหลัง (ถ้าดึงสำเร็จภายใน 3.5 วินาที ค่อยอัปเดตทับ)
         (async function updateLiveFeedInBackground() {
             const proxies = [
                 'https://api.allorigins.win/raw?url=' + encodeURIComponent(myRealRssUrl),
-                'https://corsproxy.io/?' + encodeURIComponent(myRealRssUrl)
+                'https://corsproxy.io/?' + encodeURIComponent(myRealRssUrl),
+                'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(myRealRssUrl)
             ];
             for (const url of proxies) {
                 try {
                     const res = await fetchWithTimeout(url, 3500);
                     if (res.ok) {
-                        const text = await res.text();
-                        const parsed = parseRssXml(text);
-                        if (parsed.length > 0) {
-                            renderFeeds(parsed);
-                            return;
+                        if (url.includes('rss2json')) {
+                            const data = await res.json();
+                            if (data.items && data.items.length > 0) {
+                                renderFeeds(data.items);
+                                return;
+                            }
+                        } else {
+                            const text = await res.text();
+                            const parsed = parseRssXml(text);
+                            if (parsed.length > 0) {
+                                renderFeeds(parsed);
+                                return;
+                            }
                         }
                     }
                 } catch (e) { }
