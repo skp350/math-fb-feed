@@ -5,35 +5,56 @@ const RSS_URL = 'https://fetchrss.com/feed/1x2Ksn3K62qo1x2KsG7fR4v4.rss';
 const FB_PAGE_URL = 'https://www.facebook.com/MathMaeJo';
 const IMG_DIR = 'images';
 
-// สร้างโฟลเดอร์ images/ หากรันครั้งแรก
 if (!fs.existsSync(IMG_DIR)) {
     fs.mkdirSync(IMG_DIR, { recursive: true });
 }
 
+// ฟังก์ชันดาวน์โหลดรูปลงโฟลเดอร์ images/ (ลองโหลดตรงๆ ก่อน ถ้าติดบล็อกให้โหลดผ่าน wsrv.nl proxy)
 async function downloadImage(url, filepath) {
-    try {
-        const res = await fetch(url, {
-            headers: { 'User-Agent': 'Mozilla/5.0' }
-        });
-        if (!res.ok) return false;
-        const contentType = res.headers.get('content-type') || '';
-        if (!contentType.includes('image')) return false;
+    const urlsToTry = [
+        url,
+        'https://wsrv.nl/?url=' + encodeURIComponent(url) + '&output=jpg'
+    ];
 
-        const buffer = Buffer.from(await res.arrayBuffer());
-        if (buffer.length < 1000) return false;
+    for (const tryUrl of urlsToTry) {
+        try {
+            const res = await fetch(tryUrl, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36',
+                    'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
+                }
+            });
+            if (!res.ok) continue;
 
-        fs.writeFileSync(filepath, buffer);
-        return true;
-    } catch (e) {
-        return false;
+            const contentType = res.headers.get('content-type') || '';
+            if (!contentType.includes('image')) continue;
+
+            const buffer = Buffer.from(await res.arrayBuffer());
+            if (buffer.length < 1500) continue; // ป้องกันไฟล์เสีย
+
+            fs.writeFileSync(filepath, buffer);
+            return true;
+        } catch (e) {
+            // ลองช่องทางถัดไป
+        }
     }
+    return false;
 }
+
+// 매ปสำหรับจับคู่โพสต์เก่า 5 โพสต์แรกที่เคยเซฟชื่อ fb1.jpg - fb5.jpg ไว้
+const legacyPostMap = {
+    '1598529688736831': 'images/fb1.jpg',
+    '1598529515403515': 'images/fb2.jpg',
+    '1598529438736856': 'images/fb3.jpg',
+    '1598529358736864': 'images/fb4.jpg',
+    '1598529208736879': 'images/fb5.jpg'
+};
 
 async function run() {
     console.log('Checking FetchRSS for new Facebook posts...');
     const res = await fetch(RSS_URL);
     if (!res.ok) {
-        console.log('RSS unreachable, keeping existing images in /images folder.');
+        console.log('RSS unreachable, keeping existing files.');
         return;
     }
     const xml = await res.text();
@@ -42,7 +63,7 @@ async function run() {
     const items = [...xml.matchAll(itemRegex)].slice(0, 5);
 
     if (items.length === 0) {
-        console.log('No items in RSS, keeping existing images.');
+        console.log('No items in RSS, keeping existing files.');
         return;
     }
 
@@ -53,13 +74,18 @@ async function run() {
         const title = (itemXml.match(/<title>([\s\S]*?)<\/title>/)?.[1] || '').trim();
         const link = (itemXml.match(/<link>([\s\S]*?)<\/link>/)?.[1] || FB_PAGE_URL).trim();
         const pubDate = (itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] || '').trim();
+        const guid = (itemXml.match(/<guid[^>]*>([\s\S]*?)<\/guid>/)?.[1] || '').trim();
+
+        // สกัดรหัสโพสต์ (Post ID) เพื่อนำมาตั้งเป็นชื่อไฟล์รูปเฉพาะของโพสต์นั้นๆ (ไม่ให้รูปสลับกันเวลาโพสต์เลื่อนอันดับ!)
+        const postIdMatch = link.match(/posts\/(\d+)/) || guid.match(/_(\d+)/) || [null, `item_${i + 1}`];
+        const postId = postIdMatch[1];
 
         let desc = itemXml.match(/<description>\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*<\/description>/)?.[1]
-            || itemXml.match(/<description>([\s\S]*?)<\/description>/)?.[1] || '';
+                || itemXml.match(/<description>([\s\S]*?)<\/description>/)?.[1] || '';
 
         let imgUrl = itemXml.match(/<media:content[^>]+url=["']([^"']+)["']/)?.[1]
-            || desc.match(/src=["']([^"']+)["']/)?.[1] || '';
-        imgUrl = imgUrl.replace(/&amp;/g, '&');
+                  || desc.match(/src=["']([^"']+)["']/)?.[1] || '';
+        imgUrl = imgUrl.replace(/&amp;/g, '&').trim();
 
         let cleanText = desc
             .replace(/<span[\s\S]*?<\/span>/gi, '')
@@ -68,19 +94,33 @@ async function run() {
             .replace(/\s+/g, ' ')
             .trim();
 
-        const localImgPath = path.join(IMG_DIR, `fb${i + 1}.jpg`);
+        const localImgPath = path.join(IMG_DIR, `post_${postId}.jpg`);
+        let finalThumbnail = `images/post_${postId}.jpg`;
 
-        // ดาวน์โหลดรูปเก็บเข้าโฟลเดอร์ images/ (ถ้าลิงก์ RSS หมดอายุ จะไม่ทับรูปเดิมในโฟลเดอร์!)
-        if (imgUrl) {
-            const success = await downloadImage(imgUrl, localImgPath);
-            console.log(`Post ${i + 1}: ${success ? 'Saved new image to ' + localImgPath : 'RSS link expired -> keeping saved image in ' + localImgPath}`);
+        // ถ้าเคยมีรูปของโพสต์นี้ในโฟลเดอร์แล้ว หรือโหลดรูปใหม่สำเร็จ
+        if (fs.existsSync(localImgPath)) {
+            console.log(`Post ${postId}: Image already saved in ${localImgPath}`);
+            finalThumbnail = `images/post_${postId}.jpg`;
+        } else if (imgUrl && await downloadImage(imgUrl, localImgPath)) {
+            console.log(`Post ${postId}: Downloaded new image -> ${localImgPath}`);
+            finalThumbnail = `images/post_${postId}.jpg`;
+        } else if (legacyPostMap[postId] && fs.existsSync(legacyPostMap[postId])) {
+            // ถ้าเป็น 5 โพสต์แรกสุดที่คุณอัปโหลด fb1.jpg - fb5.jpg ไว้ ให้ก๊อปปี้มาเป็นชื่อรหัสโพสต์ด้วย
+            fs.copyFileSync(legacyPostMap[postId], localImgPath);
+            console.log(`Post ${postId}: Mapped from legacy ${legacyPostMap[postId]} -> ${localImgPath}`);
+            finalThumbnail = `images/post_${postId}.jpg`;
+        } else if (imgUrl) {
+            console.log(`Post ${postId}: Download failed, falling back to live URL`);
+            finalThumbnail = imgUrl;
         }
 
         newPosts.push({
+            id: postId,
             title: title || 'ข่าวสารสาขาวิชาคณิตศาสตร์',
             description: cleanText || title,
             pubDate: pubDate,
-            thumbnail: `images/fb${i + 1}.jpg`,
+            thumbnail: finalThumbnail,
+            liveImgUrl: imgUrl,
             link: link
         });
     }
