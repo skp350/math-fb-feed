@@ -1,0 +1,32 @@
+name: Auto Save Facebook Feed & Images
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # รันอัตโนมัติทุกๆ 6 ชั่วโมง
+  workflow_dispatch:      # มีปุ่มให้กดสั่งรันเองได้ทันที
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch RSS and Save Images to Folder
+        run: node update_feed.js
+
+      - name: Commit and Push Saved Images
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add posts.json images/*.jpg || true
+          git diff --staged --quiet || git commit -m "Auto-update Facebook feed and images folder"
+          git push
