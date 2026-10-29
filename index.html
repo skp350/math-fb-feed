@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook 6 Feeds - สาขาวิชาคณิตศาสตร์ ม.แม่โจ้</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Sarabun', sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            padding: 0;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        /* เลย์เอาต์ 6 ข่าว */
+        .feed-container-6 {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .news-card-6 {
+            width: calc(33.333% - 8px);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 430px;
+            text-decoration: none;
+            color: inherit;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .news-card-6:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+        }
+
+        .news-card-6.youtube-card {
+            border: 1px solid #fca5a5;
+            background: #fff5f5;
+        }
+
+        .card-img-wrapper {
+            width: 100%;
+            height: 270px;
+            background: #f8fafc;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center;
+        }
+
+        .play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 54px;
+            height: 54px;
+            background: rgba(220, 38, 38, 0.9);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+        }
+
+        .card-content {
+            padding: 12px 14px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .author-info {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            margin-bottom: 6px;
+        }
+
+        .author-date {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .card-text {
+            font-size: 12px;
+            color: #334155;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 6px;
+        }
+
+        .read-more {
+            font-size: 11px;
+            color: #2563eb;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .read-more.yt-more {
+            color: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            .news-card-6 {
+                width: 100%;
+                height: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="feed-container-6" id="feed-container"></div>
+
+    <script>
+        const fbPageUrl = 'https://www.facebook.com/MathMaeJo';
+        const defaultFallbackImg = 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=600&auto=format&fit=crop&q=80';
+
+        // ข้อมูลโพสต์ ดึงรูปจากโฟลเดอร์ images/ ที่ดาวน์โหลดเก็บไว้ใน Server เสมอ (ป้องกัน RSS หมดอายุ 100%)
+        const fallbackPosts = [
+            {
+                title: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦",
+                description: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦 The Faculty and Student Exchange Program at Maejo University gave PSAU participants the opportunity to step into a new academic environment, share knowledge, and learn alongside an international community.",
+                pubDate: "2026-09-29T01:06:25Z",
+                thumbnail: "images/fb1.jpg",
+                link: "https://www.facebook.com/1576197564303377/posts/1598529688736831"
+            },
+            {
+                title: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦",
+                description: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦 The Faculty and Student Exchange Program at the Department of Mathematics, Faculty of Science, Maejo University, Thailand, offered PSAU participants an opportunity to learn beyond the classroom.",
+                pubDate: "2026-09-29T01:06:16Z",
+                thumbnail: "images/fb2.jpg",
+                link: "https://www.facebook.com/1576197564303377/posts/1598529515403515"
+            },
+            {
+                title: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦",
+                description: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦 The exchange experience at Maejo University brought together learning, collaboration, and cultural exchange through the Department of Mathematics, Faculty of Science.",
+                pubDate: "2026-09-29T01:06:08Z",
+                thumbnail: "images/fb3.jpg",
+                link: "https://www.facebook.com/1576197564303377/posts/1598529438736856"
+            },
+            {
+                title: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦",
+                description: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦 Every mobility experience brings new lessons, perspectives, and connections. Through the Faculty and Student Exchange Program at Maejo University, PSAU participants engaged with the Department of Mathematics.",
+                pubDate: "2026-09-29T01:05:59Z",
+                thumbnail: "images/fb4.jpg",
+                link: "https://www.facebook.com/1576197564303377/posts/1598529358736864"
+            },
+            {
+                title: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦",
+                description: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦 The exchange at Maejo University opened opportunities for PSAU faculty and students to engage, learn, and connect with an international academic community.",
+                pubDate: "2026-09-29T01:05:48Z",
+                thumbnail: "images/fb5.jpg",
+                link: "https://www.facebook.com/1576197564303377/posts/1598529208736879"
+            }
+        ];
+
+        function renderFeeds(items) {
+            let posts = (items || []).slice(0, 5);
+            posts.push({
+                title: "🎬 แนะนำคณะวิทยาศาสตร์ มหาวิทยาลัยแม่โจ้",
+                description: "วิดีโอแนะนำหลักสูตร และการเรียนการสอน คณะวิทยาศาสตร์ มหาวิทยาลัยแม่โจ้ (คลิกเพื่อรับชมบน YouTube)",
+                pubDate: "วิดีโอแนะนำ",
+                thumbnail: "https://img.youtube.com/vi/EghnSl8vNtE/hqdefault.jpg",
+                link: "https://www.youtube.com/watch?v=EghnSl8vNtE",
+                isYoutube: true
+            });
+
+            const container = document.getElementById('feed-container');
+            container.innerHTML = '';
+
+            posts.forEach((post, index) => {
+                const dateStr = post.isYoutube ? 'วิดีโอแนะนำ' : (post.pubDate ? new Date(post.pubDate).toLocaleDateString('th-TH', { month: 'short', day: 'numeric' }) : 'ล่าสุด');
+                const localFolderImg = post.isYoutube ? post.thumbnail : (post.thumbnail || `images/fb${index + 1}.jpg`);
+
+                container.innerHTML += `
+            <a href="${post.link || fbPageUrl}" target="_blank" class="news-card-6 ${post.isYoutube ? 'youtube-card' : ''}">
+              <div class="card-img-wrapper">
+                <img class="card-img" src="${localFolderImg}" alt="Card Image"
+                     onerror="this.onerror=null;this.src='${defaultFallbackImg}';">
+                ${post.isYoutube ? '<div class="play-btn">▶</div>' : ''}
+              </div>
+              <div class="card-content">
+                <div>
+                  <div class="author-info">
+                    <span class="author-date">📅 ${dateStr}</span>
+                  </div>
+                  <p class="card-text">${post.description}</p>
+                </div>
+                <div>
+                  <span class="read-more ${post.isYoutube ? 'yt-more' : ''}">${post.isYoutube ? 'รับชมบน YouTube ➔' : 'Read More ➔'}</span>
+                </div>
+              </div>
+            </a>
+          `;
+            });
+        }
+
+        // แสดงผลทันทีจากโฟลเดอร์ images/ และอัปเดตข้อความหากมีไฟล์ posts.json ที่บอทเซฟไว้
+        renderFeeds(fallbackPosts);
+
+        fetch('posts.json?t=' + Date.now())
+            .then(res => res.ok ? res.json() : null)
+            .then(data => {
+                if (data && data.length > 0) renderFeeds(data);
+            })
+            .catch(() => { });
+    </script>
+</body>
+
+</html>
