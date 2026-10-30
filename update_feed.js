@@ -9,7 +9,18 @@ if (!fs.existsSync(IMG_DIR)) {
     fs.mkdirSync(IMG_DIR, { recursive: true });
 }
 
-// ฟังก์ชันดาวน์โหลดรูปลงโฟลเดอร์ images/ (ลองโหลดตรงๆ ก่อน ถ้าติดบล็อกให้โหลดผ่าน wsrv.nl proxy)
+// ฟังก์ชันแปลงลิงก์ให้เป็นของเพจ MathMaeJo ตั้งแต่ต้นทาง
+function cleanFacebookUrl(rawUrl, postId) {
+    if (!rawUrl) return FB_PAGE_URL;
+    // แปลงรหัสตัวเลขยาวๆ เช่น /1576197564303377/posts/ ให้เป็นชื่อเพจ /MathMaeJo/posts/
+    let fixed = rawUrl.replace(/facebook\.com\/\d+\/posts\//, 'facebook.com/MathMaeJo/posts/');
+    if (postId && !fixed.includes('/posts/')) {
+        fixed = `https://www.facebook.com/MathMaeJo/posts/${postId}`;
+    }
+    return fixed;
+}
+
+// ฟังก์ชันดาวน์โหลดรูปลงโฟลเดอร์ images/ (ลองตรงๆ ก่อน ถ้าโดนบล็อกให้ผ่าน wsrv.nl proxy)
 async function downloadImage(url, filepath) {
     const urlsToTry = [
         url,
@@ -35,13 +46,13 @@ async function downloadImage(url, filepath) {
             fs.writeFileSync(filepath, buffer);
             return true;
         } catch (e) {
-            // ลองช่องทางถัดไป
+            // ลอง URL สำรองถัดไป
         }
     }
     return false;
 }
 
-// 매ปสำหรับจับคู่โพสต์เก่า 5 โพสต์แรกที่เคยเซฟชื่อ fb1.jpg - fb5.jpg ไว้
+// แผนที่สำหรับ 5 โพสต์แรกสุดที่เคยใช้ชื่อ fb1.jpg - fb5.jpg
 const legacyPostMap = {
     '1598529688736831': 'images/fb1.jpg',
     '1598529515403515': 'images/fb2.jpg',
@@ -72,13 +83,16 @@ async function run() {
     for (let i = 0; i < items.length; i++) {
         const itemXml = items[i][1];
         const title = (itemXml.match(/<title>([\s\S]*?)<\/title>/)?.[1] || '').trim();
-        const link = (itemXml.match(/<link>([\s\S]*?)<\/link>/)?.[1] || FB_PAGE_URL).trim();
+        const rawLink = (itemXml.match(/<link>([\s\S]*?)<\/link>/)?.[1] || FB_PAGE_URL).trim();
         const pubDate = (itemXml.match(/<pubDate>([\s\S]*?)<\/pubDate>/)?.[1] || '').trim();
         const guid = (itemXml.match(/<guid[^>]*>([\s\S]*?)<\/guid>/)?.[1] || '').trim();
 
-        // สกัดรหัสโพสต์ (Post ID) เพื่อนำมาตั้งเป็นชื่อไฟล์รูปเฉพาะของโพสต์นั้นๆ (ไม่ให้รูปสลับกันเวลาโพสต์เลื่อนอันดับ!)
-        const postIdMatch = link.match(/posts\/(\d+)/) || guid.match(/_(\d+)/) || [null, `item_${i + 1}`];
+        // สกัดรหัสโพสต์ (Post ID)
+        const postIdMatch = rawLink.match(/posts\/(\d+)/) || guid.match(/_(\d+)/) || [null, `item_${i + 1}`];
         const postId = postIdMatch[1];
+
+        // แปลงลิงก์ให้เป็นของเพจ MathMaeJo ที่ถูกต้อง
+        const cleanLink = cleanFacebookUrl(rawLink, postId);
 
         let desc = itemXml.match(/<description>\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*<\/description>/)?.[1]
                 || itemXml.match(/<description>([\s\S]*?)<\/description>/)?.[1] || '';
@@ -97,21 +111,15 @@ async function run() {
         const localImgPath = path.join(IMG_DIR, `post_${postId}.jpg`);
         let finalThumbnail = `images/post_${postId}.jpg`;
 
-        // ถ้าเคยมีรูปของโพสต์นี้ในโฟลเดอร์แล้ว หรือโหลดรูปใหม่สำเร็จ
         if (fs.existsSync(localImgPath)) {
-            console.log(`Post ${postId}: Image already saved in ${localImgPath}`);
-            finalThumbnail = `images/post_${postId}.jpg`;
+            console.log(`Post ${postId}: Image already saved`);
         } else if (imgUrl && await downloadImage(imgUrl, localImgPath)) {
             console.log(`Post ${postId}: Downloaded new image -> ${localImgPath}`);
-            finalThumbnail = `images/post_${postId}.jpg`;
         } else if (legacyPostMap[postId] && fs.existsSync(legacyPostMap[postId])) {
-            // ถ้าเป็น 5 โพสต์แรกสุดที่คุณอัปโหลด fb1.jpg - fb5.jpg ไว้ ให้ก๊อปปี้มาเป็นชื่อรหัสโพสต์ด้วย
             fs.copyFileSync(legacyPostMap[postId], localImgPath);
-            console.log(`Post ${postId}: Mapped from legacy ${legacyPostMap[postId]} -> ${localImgPath}`);
-            finalThumbnail = `images/post_${postId}.jpg`;
+            console.log(`Post ${postId}: Mapped legacy image -> ${localImgPath}`);
         } else if (imgUrl) {
-            console.log(`Post ${postId}: Download failed, falling back to live URL`);
-            finalThumbnail = imgUrl;
+            finalThumbnail = imgUrl; // Fallback หากโหลดไม่สำเร็จจริงๆ
         }
 
         newPosts.push({
@@ -121,12 +129,12 @@ async function run() {
             pubDate: pubDate,
             thumbnail: finalThumbnail,
             liveImgUrl: imgUrl,
-            link: link
+            link: cleanLink
         });
     }
 
     fs.writeFileSync('posts.json', JSON.stringify(newPosts, null, 2), 'utf8');
-    console.log('Updated posts.json successfully!');
+    console.log('Saved posts.json with clean mobile-ready Facebook URLs!');
 }
 
 run();
