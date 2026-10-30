@@ -152,41 +152,62 @@
         const fbPageUrl = 'https://www.facebook.com/MathMaeJo';
         const defaultFallbackImg = 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=600&auto=format&fit=crop&q=80';
 
+        // ฟังก์ชันแก้ลิงก์ Facebook ให้เปิดบนแอปมือถือ/iPad ได้ไม่ติด "ไม่พร้อมให้ใช้งาน"
+        function fixFbLink(url) {
+            if (!url) return fbPageUrl;
+            // เช็คว่าอุปกรณ์ที่เปิดเป็น iPhone / iPad / Android หรือไม่
+            const isMobileOrTablet = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+                                     (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+            // แปลงตัวเลข ID เพจ (เช่น /1576197564303377/posts/...) ให้เป็นชื่อเพจ /MathMaeJo/posts/...
+            let cleanUrl = url.replace(/facebook\.com\/\d+\/posts\//, 'facebook.com/MathMaeJo/posts/');
+
+            // บนแอป Facebook ของ iPad/iPhone ลิงก์รหัสตัวเลขจาก RSS มักโดนแอปบล็อก ให้พาไปหน้าเพจหลักของสาขาแทนหากเปิดจากแอปมือถือ
+            if (isMobileOrTablet && cleanUrl.includes('/posts/')) {
+                const postIdMatch = cleanUrl.match(/\/posts\/(\d+)/);
+                if (postIdMatch) {
+                    // ใช้รูปแบบ permalink ของเพจ หรือหากเลขโพสต์เป็นรหัสภายในของ FetchRSS ให้เปิดหน้าเพจ MathMaeJo
+                    return `https://www.facebook.com/MathMaeJo`;
+                }
+            }
+            return cleanUrl;
+        }
+
         const fallbackPosts = [
             {
                 title: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦",
                 description: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦 The Faculty and Student Exchange Program at Maejo University gave PSAU participants the opportunity to step into a new academic environment, share knowledge, and learn alongside an international community.",
                 pubDate: "2026-09-29T01:06:25Z",
                 thumbnail: "images/fb1.jpg",
-                link: "https://www.facebook.com/1576197564303377/posts/1598529688736831"
+                link: "https://www.facebook.com/MathMaeJo/posts/1598529688736831"
             },
             {
                 title: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦",
                 description: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦 The Faculty and Student Exchange Program at the Department of Mathematics, Faculty of Science, Maejo University, Thailand, offered PSAU participants an opportunity to learn beyond the classroom.",
                 pubDate: "2026-09-29T01:06:16Z",
                 thumbnail: "images/fb2.jpg",
-                link: "https://www.facebook.com/1576197564303377/posts/1598529515403515"
+                link: "https://www.facebook.com/MathMaeJo/posts/1598529515403515"
             },
             {
                 title: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦",
                 description: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦 The exchange experience at Maejo University brought together learning, collaboration, and cultural exchange through the Department of Mathematics, Faculty of Science.",
                 pubDate: "2026-09-29T01:06:08Z",
                 thumbnail: "images/fb3.jpg",
-                link: "https://www.facebook.com/1576197564303377/posts/1598529438736856"
+                link: "https://www.facebook.com/MathMaeJo/posts/1598529438736856"
             },
             {
                 title: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦",
                 description: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦 Every mobility experience brings new lessons, perspectives, and connections. Through the Faculty and Student Exchange Program at Maejo University, PSAU participants engaged with the Department of Mathematics.",
                 pubDate: "2026-09-29T01:05:59Z",
                 thumbnail: "images/fb4.jpg",
-                link: "https://www.facebook.com/1576197564303377/posts/1598529358736864"
+                link: "https://www.facebook.com/MathMaeJo/posts/1598529358736864"
             },
             {
                 title: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦",
                 description: "𝗠𝗢𝗕𝗜𝗟𝗜𝗧𝗬 𝗥𝗘𝗙𝗟𝗘𝗖𝗧𝗜𝗢𝗡𝗦 The exchange at Maejo University opened opportunities for PSAU faculty and students to engage, learn, and connect with an international academic community.",
                 pubDate: "2026-09-29T01:05:48Z",
                 thumbnail: "images/fb5.jpg",
-                link: "https://www.facebook.com/1576197564303377/posts/1598529208736879"
+                link: "https://www.facebook.com/MathMaeJo/posts/1598529208736879"
             }
         ];
 
@@ -208,9 +229,10 @@
                 const dateStr = post.isYoutube ? 'วิดีโอแนะนำ' : (post.pubDate ? new Date(post.pubDate).toLocaleDateString('th-TH', { month: 'short', day: 'numeric' }) : 'ล่าสุด');
                 const imgSrc = post.thumbnail || defaultFallbackImg;
                 const liveFallback = post.liveImgUrl || defaultFallbackImg;
+                const targetLink = post.isYoutube ? post.link : fixFbLink(post.link);
 
                 container.innerHTML += `
-            <a href="${post.link || fbPageUrl}" target="_blank" class="news-card-6 ${post.isYoutube ? 'youtube-card' : ''}">
+            <a href="${targetLink}" target="_blank" class="news-card-6 ${post.isYoutube ? 'youtube-card' : ''}">
               <div class="card-img-wrapper">
                 <img class="card-img" src="${imgSrc}" referrerpolicy="no-referrer" alt="Card Image"
                      onerror="if(!this.dataset.triedLive && '${liveFallback}' !== '${defaultFallbackImg}'){this.dataset.triedLive='1';this.src='${liveFallback}';}else{this.onerror=null;this.src='${defaultFallbackImg}';}">
